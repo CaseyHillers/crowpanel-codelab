@@ -1,0 +1,25 @@
+{
+  "name": "crowpanel-micropython-workshop",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaseyHillers/crowpanel-codelab.git"
+  },
+  "homepage": "https://caseyhillers.github.io/crowpanel-codelab/",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build && node tools/copy_notices.js",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "esptool-js": "0.7.0"
+  },
+  "devDependencies": {
+    "vite": "8.3.5"
+  },
+  "engines": { "node": ">=22.12.0" }
+}

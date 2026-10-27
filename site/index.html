@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f8">
+    <meta name="description" content="A two-hour, browser-based MicroPython workshop for the CrowPanel 2.13-inch e-paper display.">
+    <title>CrowPanel lab · MicroPython workshop</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#lesson">Skip to lesson</a>
+    <header class="topbar">
+      <a class="brand" href="#welcome" aria-label="CrowPanel lab, welcome">
+        <svg width="25" height="19" viewBox="0 0 25 19" aria-hidden="true"><rect x="1" y="1" width="23" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h9M5 10h15M8 18h9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        CrowPanel lab
+      </a>
+      <span class="course-scope">MicroPython workshop <span class="scope-time">/ 2 hours</span></span>
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="course-nav">Lessons</button>
+    </header>
+    <div class="shell">
+      <aside class="sidebar" id="course-nav" aria-label="Course navigation">
+        <p class="sidebar-heading">Your workshop</p>
+        <nav aria-label="Lessons"><ol id="lesson-list" class="lesson-list"></ol></nav>
+        <div class="course-progress"><label for="course-progress">Course progress</label><progress id="course-progress" max="7" value="0"></progress><p id="progress-text">0 of 7 marked complete</p></div>
+        <p class="sidebar-note">Read at your own pace. Completion is yours to check, not a device test.</p>
+      </aside>
+      <main class="sheet" id="main">
+        <div id="capability-warning" class="notice" role="status" hidden></div>
+        <div class="workshop-grid">
+          <article class="lesson" id="lesson" tabindex="-1" aria-labelledby="lesson-title">
+            <div class="lesson-heading"><h1 id="lesson-title">Welcome to the lab</h1><span id="lesson-duration" class="duration">10 min</span></div>
+            <p id="lesson-summary" class="lesson-summary">Four small programs. One e-paper display. Everything runs from this browser.</p>
+            <div id="lesson-content"></div>
+            <section id="setup-tools" class="lesson-tools" aria-labelledby="setup-title" hidden>
+              <h2 id="setup-title">Install the runtime</h2>
+              <p id="firmware-description"></p>
+              <p><a id="firmware-source" href="https://micropython.org/download/ESP32_GENERIC_S3/" target="_blank" rel="noreferrer">Official firmware &amp; board variants <span class="sr-only">(opens in a new tab)</span></a></p>
+              <label for="firmware-file">Local firmware .bin (optional)</label>
+              <input id="firmware-file" type="file" accept=".bin,application/octet-stream" aria-describedby="firmware-file-help">
+              <p id="firmware-file-help" class="help">Choose the complete ESP32-S3 .bin, not .app-bin or .uf2. Use a local file if your network blocks the download. Verify your board's PSRAM variant first.</p>
+              <button id="flash-button" class="danger" type="button" data-hardware>Erase &amp; flash MicroPython…</button>
+              <label class="sr-only" for="flash-progress">Firmware writing progress</label><progress id="flash-progress" max="100" value="0" hidden></progress>
+              <p id="flash-status" class="help" role="status">No firmware has been flashed in this session.</p>
+              <h2>Install the workshop files</h2>
+              <p>After flashing, reconnect with <strong>Connect device</strong>. Install the display, weather and slide libraries plus <code>weather_ca.pem</code> on the board. Existing files with these names will be replaced; this does not create an autostart program.</p>
+              <button id="install-button" type="button" data-device>Install 4 workshop files</button>
+              <p id="install-status" class="help" role="status">Not installed in this browser session.</p>
+            </section>
+            <section id="wifi-tools" class="lesson-tools" aria-labelledby="wifi-title" hidden>
+              <h2 id="wifi-title">Set the device's Wi-Fi</h2>
+              <p>Use an approved 2.4 GHz WPA2-Personal or open network. This workshop does not configure corporate 802.1X. MAC registration alone is not enough.</p>
+              <form id="wifi-form" autocomplete="off">
+                <label for="wifi-ssid">Network name (SSID)</label><input id="wifi-ssid" name="workshop-ssid" type="text" maxlength="32" autocomplete="off" required>
+                <label for="wifi-password">Wi-Fi password</label><input id="wifi-password" name="workshop-password" type="password" autocomplete="new-password" aria-describedby="wifi-help">
+                <p id="wifi-help" class="help">Sent only over USB into wifi_config.py on the device, in plaintext. Never added to the editor, browser storage or workshop logs. Both fields clear after a successful write and when you leave this lesson. Leave the password empty only for an open network.</p>
+                <button id="wifi-save" type="submit" data-device>Write Wi-Fi config to device</button>
+              </form>
+              <p id="wifi-status" class="help" role="status">No Wi-Fi credentials sent in this session.</p>
+            </section>
+            <footer class="lesson-footer">
+              <label class="completion"><input id="lesson-complete" type="checkbox"> I’ve completed this step</label>
+              <div class="lesson-paging"><button id="previous-lesson" type="button">Previous</button><button id="next-lesson" type="button">Next lesson →</button></div>
+            </footer>
+          </article>
+          <section class="workspace" aria-label="Device workspace">
+            <section class="connection" aria-labelledby="connection-title">
+              <div class="section-heading"><h2 id="connection-title">Device</h2><span id="connection-state" role="status">Disconnected</span></div>
+              <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="disconnect-button" type="button" disabled>Disconnect</button></div>
+              <p id="connection-help" class="help">USB serial · 115200 baud · select your board's port</p>
+            </section>
+            <section class="editor-panel" aria-labelledby="editor-title">
+              <div class="section-heading"><h2 id="editor-title">Python editor</h2><span id="draft-state">Sample</span></div>
+              <div class="file-line"><span id="editor-filename">01_mac.py</span><button id="reset-editor" class="text-button" type="button">Reset sample</button></div>
+              <label class="sr-only" for="code-editor">Python source for the current lesson</label>
+              <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-describedby="editor-help"></textarea>
+              <p id="editor-help" class="help editor-help">Edits stay per lesson in this tab only. Tab moves focus. Ctrl/⌘ + Enter runs. Download before closing.</p>
+              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="stop-button" type="button" disabled>Stop</button><button id="download-button" type="button">Download .py</button></div>
+              <details class="save-details"><summary>Run automatically on boot</summary><p>Saving as <code>main.py</code> overwrites that file and runs this program on every reset. Keep USB access so you can stop it with Ctrl-C.</p><button id="save-main" type="button" data-device>Save as main.py…</button></details>
+            </section>
+            <section class="console-panel" aria-labelledby="console-title">
+              <div class="section-heading"><h2 id="console-title">Serial console</h2><button id="clear-console" class="text-button" type="button">Clear</button></div>
+              <pre id="console-output" tabindex="0" aria-label="Device output">Connect a board to see device output here.
+No code runs automatically.</pre>
+              <p id="action-status" class="action-status" role="status" aria-live="polite">Ready to read. No device required.</p>
+              <p id="action-error" class="action-error" role="alert" hidden></p>
+            </section>
+            <figure class="panel-preview">
+              <div class="preview-caption"><figcaption>Display layout preview</figcaption><span>250 × 122 px</span></div>
+              <svg id="display-preview" viewBox="0 0 250 122" width="250" height="122" role="img" aria-label="Illustrative e-paper layout, not output from a connected device"><rect x="0.5" y="0.5" width="249" height="121" fill="white" stroke="#131416"/><text x="14" y="29" fill="#131416" font-size="14" font-family="monospace">Hello, CrowPanel!</text><path d="M14 41h222" stroke="#131416"/><text x="14" y="66" fill="#131416" font-size="12" font-family="monospace">250 x 122 pixels</text><text x="14" y="84" fill="#131416" font-size="12" font-family="monospace">Black, white, your code.</text><text x="14" y="109" fill="#131416" font-size="12" font-family="monospace">up / down / press</text></svg>
+              <p class="help">Illustration only. Not a simulator or a live device view.</p>
+            </figure>
+          </section>
+        </div>
+      </main>
+    </div>
+    <noscript>
+      <section class="noscript-course">
+        <h1>CrowPanel MicroPython workshop</h1>
+        <p>JavaScript is disabled. You can read this workshop outline; the interactive lessons, editor and USB controls require JavaScript. No server account or local compiler is needed.</p>
+        <h2>1. Welcome · 10 minutes</h2><p>Bring a CrowPanel 2.13-inch ESP32-S3 e-paper board, a USB data cable, a desktop Chrome or Edge browser, and permission to replace the device firmware. Hardware compatibility and USB enumeration must be checked on your own board. This course does not claim device verification.</p>
+        <h2>2. Setup · 15 minutes</h2><p>Back up your board first. Obtain the correct complete ESP32-S3 OCTSPIRAM MicroPython .bin from the official download page. Flashing erases existing firmware and files. Reconnect after flashing and install crowpanel.py, weather.py, slides.py and weather_ca.pem. Close other serial monitors first.</p>
+        <h2>3. Exercise: station MAC · 10 minutes</h2><p>Run device/examples/01_mac.py. Record the Wi-Fi station MAC, reset the board and compare it. Reading a MAC does not require joining Wi-Fi and does not establish corporate-network compatibility.</p>
+        <h2>4. Exercise: hello, e-paper · 20 minutes</h2><p>Run device/examples/02_hello.py. Change its text and coordinates, then refresh the display once. Landscape is 250 × 122 pixels. Pins: SPI clock 12, MOSI 11, CS 14, DC 13, reset 10, busy 9, power 7. Check the actual controller revision before troubleshooting the driver.</p>
+        <h2>5. Exercise: slideshow · 25 minutes</h2><p>Run device/examples/03_slideshow.py. Use up (6), down (4), press (5), menu (2) and back (1). Follow the sample's controls. Modify one slide, test first/last wrapping, and avoid a fast display-refresh loop. Ctrl-C stops a running script through a serial terminal.</p>
+        <h2>6. Exercise: weather · 30 minutes</h2><p>Run device/examples/04_weather.py after providing SSID and PASSWORD string variables in wifi_config.py on the device. Use an approved 2.4 GHz WPA2-Personal or open network. Do not paste secrets into shared code. Follow the sample's time-sync and certificate instructions; never disable TLS verification to bypass a network error.</p>
+        <h2>7. Finish · 10 minutes</h2><p>Download your changes. Run executes in RAM; saving main.py makes a program run at every reset. Remove wifi_config.py before returning or sharing the board. Keep the USB recovery path available.</p>
+      </section>
+    </noscript>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
