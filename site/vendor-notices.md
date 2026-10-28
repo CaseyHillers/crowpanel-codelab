@@ -4,9 +4,10 @@
 
 MicroPython is a separate project, distributed under the MIT license. The
 workshop bundles the official ESP32_GENERIC_S3 SPIRAM_OCT v1.29.0 release;
-its original license is included at firmware/LICENSE-MicroPython.txt. The firmware is not
-represented as tested on this particular panel revision. Check the board variant
-before flashing. Official source and license:
+its original license is included at firmware/LICENSE-MicroPython.txt. The runtime
+and JD79661 display example were tested on one replacement board; this does not
+certify other hardware revisions. Check the board variant before flashing.
+Official source and license:
 https://github.com/micropython/micropython/blob/master/LICENSE
 
 The browser installer uses the project's pinned `esptool-js` dependency. Its
@@ -14,24 +15,70 @@ license and transitive dependency notices are copied into notices/ during
 the static build. No installer implementation is vendored in these UI files.
 https://github.com/espressif/esptool-js
 
+## Python editor
+
+CodeMirror 6, its Python language support and Lezer parser are locally bundled
+under their MIT licenses. The build copies their licenses and those of their
+runtime dependencies into notices/. Editing and highlighting require no CDN,
+account, backend or network service. Source:
+https://github.com/codemirror
+
 ## Interface design
 
-Direction: framed sheet, app builder, seed 135731182, from
+Direction: framed sheet, developer-tool builder, seed 593721118, from
 `.taste-skill/direction.json`. No redraw. The interface's question is “What do I
 try next, and what happened on my board?” Lesson instructions sit beside real
-device controls, a plain Python textarea and a serial console. The signature
-element is an explicitly illustrative 250 × 122 e-paper layout, never presented
-as a live device image or simulator.
+device controls, a wide Python editor and a serial console. The introduction's
+3D hardware story, host USB diagram and factory-refresh illustration explain
+the hardware without pretending to be live device output or a simulator.
 
 The dealt IBM Plex faces are intentionally not downloaded or bundled: no local
 font assets were available, and reliable enterprise/offline operation is the
 primary purpose. System UI and system monospace are an explicit typography
 exception. The UI makes no external font, image or analytics requests. Firmware
 downloads and device-side weather requests are separate, explicit network
-operations. No stock photography, icons, third-party font files or other visual
-assets are bundled.
+operations. No stock photography, icon packs or third-party font files are
+bundled. Local macOS setup screenshots supplied by Casey Hillers are included;
+their provenance is recorded in `guides/macos/README.md`.
 
-Course drafts and completion checks live only in JavaScript memory for the
+Course drafts live only in JavaScript memory for the
 current tab. There is no localStorage, IndexedDB or server-side draft storage.
-Wi-Fi credentials are transferred only to the device, where `wifi_config.py`
-contains plaintext. Remove that file before lending or returning the device.
+Weather defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
+`WIFI_PASSWORD = ""` for the open workshop network, not a separate config file.
+There is no separate app Wi-Fi form. Optional private credentials edited into
+the code are visible in the editor and included in downloads; never put them in
+browser storage or logs. Remove them from drafts, downloads and any device files
+(including legacy `wifi_config.py` or explicitly saved `main.py`) before sharing.
+Device files are plaintext and USB-readable; deletion is not forensic erasure.
+
+The 120-minute course has one Board check, then 30-minute turn-based Snake with
+a TODO scaffold and full solution, station MAC, slideshow, weather and Finish.
+Hello and the standalone display-independent input diagnostic are not separate
+course routes. Browser emoji indicators observe input cycles; confetti requires
+five complete cycles, a successful display marker and explicit user confirmation
+of the physical party screen. The e-paper party drawing has one final static
+refresh, not animation. Finish's battery ideas require safe compatibility checks,
+not an assumption that any pack or bare cell is suitable.
+
+## Hardware introduction
+
+The welcome scroll story and hardware appendix import the self-contained desk-kit CAD viewer from the
+supplied `crowpanel-20deg-desk-kit-2026-10-15` directory. Local copies, adaptation
+details, and geometry provenance are recorded in `hardware/README.md`. The viewer
+includes Three.js 0.160.1 under its original MIT notice in
+`hardware/THREEJS-LICENSE.txt`. These files ship unchanged by the asset bundler;
+the workshop's MIT license does not establish a new license for vendor geometry.
+
+The viewer is isolated in an iframe with scripts allowed but without same-origin,
+USB, or device access. It makes no external asset requests. The welcome story's
+screen artwork and desk are illustrative additions, not live device output.
+Scroll messages carry only numeric progress and reduced-motion preference;
+receivers validate the source window. Casey Hillers has verified the enclosure's
+physical fit.
+
+Three exact STL files are bundled under `prints/`, with quantities and SHA-256
+checksums. `prints/README.md` records attribution to Lucas Souza and the supplied
+package's separate modifications/stand. Casey Hillers confirms ownership of the
+included print files and permits free download and sharing. Preserve their
+provenance and attribution. This permission does not cover the separate Elecrow
+hardware reference geometry or replace third-party software licenses.

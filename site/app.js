@@ -2,16 +2,23 @@ import { MicroPythonConnection } from "./serial.js";
 import { lessons, samples, totalMinutes } from "./lessons.js";
 import { FIRMWARE } from "./firmware.js";
 import { flashMicroPython } from "./flash.js";
+import { createHardwareStory } from "./hardware-story.js";
+import { createCodeEditor } from "./code-editor.js";
+import { checkUsbDevice, detectHostOs } from "./usb-check.js";
+import { createProjectPrompt } from "./codex-prompts.js";
+import { createStarterInputs } from "./starter-inputs.js";
+import starterSource from "../device/examples/00_board_check.py?raw";
+import snakeSolution from "../device/examples/02_snake_solution.py?raw";
 import panelSource from "../device/crowpanel.py?raw";
 import weatherSource from "../device/weather.py?raw";
 import slidesSource from "../device/slides.py?raw";
 import weatherCa from "../device/weather_ca.pem?raw";
 
 const byId = (id) => document.getElementById(id);
-const editor = byId("code-editor");
+const hardwareStory = createHardwareStory(byId("hardware-intro"), byId("story-viewer"), byId("story-status"));
+const editor = createCodeEditor(byId("code-editor"));
 const consoleOutput = byId("console-output");
 const drafts = new Map();
-const completed = new Set();
 const libraryFiles = [
   { name: "crowpanel.py", data: panelSource },
   { name: "weather.py", data: weatherSource },
@@ -25,16 +32,75 @@ let runTask = null;
 let transitioning = false;
 let stopping = false;
 let stopRequested = false;
-let suppressOutput = false;
 let hasConsoleOutput = false;
 let receivedOutput = 0;
 let selectedFirmware = null;
 let firmwareLoading = false;
 let firmwareLoadVersion = 0;
 let firmwareSelectionError = false;
+let usbDetected = false;
+let checkingUsb = false;
+let starterActive = false;
+const observedInputs = new Map();
+let celebrationShown = false;
+let boardVerified = false;
+const starterInputs = createStarterInputs((name, state) => {
+  observedInputs.set(name, state);
+  const indicator = document.querySelector(`[data-input="${name}"]`);
+  indicator.dataset.state = state;
+  indicator.textContent = `${state === "seen" ? "✅" : "👇"} ${name}${state === "pressed" ? " · release" : ""}`;
+  indicator.setAttribute("aria-label", `${name}: ${state === "seen" ? "press and release detected" : "pressed; release it"}`);
+  const count = [...observedInputs.values()].filter(value => value === "seen").length;
+  byId("starter-status").textContent = `✅ ${count}/5 detected${count === 5 ? " · wait for the party screen." : " · try the remaining controls."}`;
+  updateVerification();
+}, () => {
+  celebrationShown = true;
+  updateVerification();
+});
+
+function updateVerification() {
+  const complete = observedInputs.size === 5 && [...observedInputs.values()].every(state => state === "seen");
+  byId("verification-result").hidden = !complete;
+  byId("confirm-display").disabled = !complete || !celebrationShown || Boolean(job) || !connection.connected;
+  byId("confirm-display").hidden = boardVerified;
+  byId("verification-display-help").textContent = boardVerified
+    ? "Five controls detected + party screen confirmed by you."
+    : celebrationShown ? "Can you see the party screen on the physical display?" : "Wait for the party screen. If it stays blank, ask for help.";
+  byId("verification-success").hidden = !boardVerified;
+  byId("start-coding").hidden = !boardVerified;
+}
+
+function resetVerification() {
+  starterInputs.reset();
+  observedInputs.clear();
+  celebrationShown = false;
+  boardVerified = false;
+  for (const indicator of document.querySelectorAll("[data-input]")) {
+    indicator.dataset.state = "waiting";
+    indicator.textContent = `○ ${indicator.dataset.input}`;
+    indicator.setAttribute("aria-label", `${indicator.dataset.input}: not yet detected`);
+  }
+}
+
+function celebrateBoard() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const confetti = document.createElement("div");
+  confetti.className = "board-confetti";
+  confetti.setAttribute("aria-hidden", "true");
+  for (let index = 0; index < 48; index += 1) {
+    const piece = document.createElement("span");
+    piece.style.left = `${(index * 37) % 100}%`;
+    piece.style.setProperty("--drift", `${((index * 53) % 240) - 120}px`);
+    piece.style.setProperty("--delay", `${(index % 8) * 45}ms`);
+    piece.style.setProperty("--turn", `${180 + (index % 5) * 90}deg`);
+    confetti.append(piece);
+  }
+  document.body.append(confetti);
+  setTimeout(() => confetti.remove(), 2800);
+}
 
 function appendOutput(text) {
-  if (suppressOutput || !text) return;
+  if (!text) return;
   const followsTail = consoleOutput.scrollHeight - consoleOutput.scrollTop - consoleOutput.clientHeight < 48;
   const previous = hasConsoleOutput ? consoleOutput.textContent : "";
   const combined = previous + String(text);
@@ -55,7 +121,7 @@ function clearError() {
 function reportError(error, fallback = "The operation failed.") {
   let message = error instanceof Error && error.message ? error.message : fallback;
   if (error?.name === "NotFoundError" || error?.name === "AbortError") {
-    message = "No port was selected, or the operation was cancelled. Nothing is marked complete; you can retry.";
+    message = "No port was selected, or the operation was cancelled. You can retry.";
   } else if (error?.name === "SecurityError" || error?.name === "NotAllowedError") {
     message = "Serial access was denied. Check browser permissions, HTTPS and your organization's device policy.";
   } else if (error?.name === "NetworkError") {
@@ -67,17 +133,18 @@ function reportError(error, fallback = "The operation failed.") {
 
 const connection = new MicroPythonConnection({
   onOutput(text) {
-    if (!suppressOutput) {
-      receivedOutput += 1;
-      appendOutput(text);
-    }
+    receivedOutput += 1;
+    appendOutput(text);
+    if (starterActive) starterInputs.push(text);
   },
   onState(state) {
     const names = { connected: "Connected", disconnected: "Disconnected", connecting: "Connecting…", running: "Busy" };
     byId("connection-state").textContent = names[state] || "Check connection";
     if (state === "disconnected") {
+      resetVerification();
       byId("connection-help").textContent = "Port closed. Check the cable, then reconnect to continue.";
     } else if (state === "connected") {
+      usbDetected = true;
       byId("connection-help").textContent = "USB serial connected. Run a sample to check the MicroPython runtime.";
     }
     updateControls();
@@ -85,7 +152,7 @@ const connection = new MicroPythonConnection({
 });
 
 function updateControls() {
-  const busy = Boolean(job || transitioning);
+  const busy = Boolean(job || transitioning || checkingUsb);
   for (const button of document.querySelectorAll("[data-device]")) {
     button.disabled = !serialAvailable || !connection.connected || busy;
   }
@@ -95,18 +162,24 @@ function updateControls() {
   byId("disconnect-button").disabled = !connection.connected || transitioning || job?.kind === "flash" || job?.kind === "connect";
   byId("stop-button").disabled = stopping || !connection.connected || !connection.running;
   byId("stop-button").textContent = stopping ? "Stopping…" : "Stop";
-  byId("flash-button").disabled = !serialAvailable || busy || connection.connected || firmwareLoading || firmwareSelectionError;
+  byId("flash-button").disabled = !serialAvailable || !usbDetected || busy || connection.connected || firmwareLoading || firmwareSelectionError;
+  byId("starter-button").disabled = !serialAvailable || (!usbDetected && !connection.connected) || busy;
+  byId("setup-usb-note").hidden = usbDetected || connection.connected;
   byId("firmware-file").disabled = job?.kind === "flash";
+  updateVerification();
+  if (byId("usb-check-button")) byId("usb-check-button").disabled = !serialAvailable || busy;
+  if (currentLesson) byId("next-lesson").disabled = lessons.indexOf(currentLesson) === lessons.length - 1
+    || (currentLesson.id === "setup" && !usbDetected)
+    || (currentLesson.id === "verify" && !boardVerified);
 }
 
-async function perform(kind, label, action, { sensitive = false } = {}) {
+async function perform(kind, label, action) {
   if (job) {
     reportError(new Error("Another operation is active. Stop the running script or wait for it to finish."));
     return;
   }
   const operation = { kind };
   job = operation;
-  suppressOutput = sensitive;
   clearError();
   setStatus(label);
   updateControls();
@@ -114,9 +187,8 @@ async function perform(kind, label, action, { sensitive = false } = {}) {
     await action();
   } catch (error) {
     setStatus("Operation did not complete. Read the error before retrying.");
-    reportError(sensitive ? new Error("Could not write Wi-Fi config. Credentials were not logged. Check the USB connection and retry; the device file may be incomplete.") : error);
+    reportError(error);
   } finally {
-    suppressOutput = false;
     if (job === operation) job = null;
     updateControls();
   }
@@ -130,25 +202,6 @@ function requireDevice() {
   return true;
 }
 
-function updateProgress() {
-  byId("course-progress").max = lessons.length;
-  byId("course-progress").value = completed.size;
-  byId("progress-text").textContent = `${completed.size} of ${lessons.length} marked complete`;
-  for (const lesson of lessons) {
-    const link = byId(`nav-${lesson.id}`);
-    link.setAttribute("aria-label", `${lesson.navTitle}, ${lesson.minutes} minutes${completed.has(lesson.id) ? ", marked complete" : ""}`);
-    const number = link.querySelector(".step-number");
-    number.textContent = String(lessons.indexOf(lesson) + 1);
-    number.classList.toggle("is-complete", completed.has(lesson.id));
-    link.querySelector(".step-duration").textContent = completed.has(lesson.id) ? "Done" : `${lesson.minutes}m`;
-  }
-}
-
-function clearWifiFields() {
-  byId("wifi-ssid").value = "";
-  byId("wifi-password").value = "";
-}
-
 function setNavOpen(open) {
   byId("course-nav").classList.toggle("is-open", open);
   byId("nav-toggle").setAttribute("aria-expanded", String(open));
@@ -156,32 +209,72 @@ function setNavOpen(open) {
 
 function renderLesson({ focus = false } = {}) {
   if (currentLesson) drafts.set(currentLesson.id, editor.value);
-  const id = location.hash.slice(1);
+  const requestedId = location.hash.slice(1);
+  const id = ({ inputs: "verify", hello: "snake" })[requestedId] || requestedId;
+  const isAppendix = id === "appendix";
   const next = lessons.find((lesson) => lesson.id === id) || lessons[0];
-  if (currentLesson?.id === "weather" && next.id !== "weather") clearWifiFields();
   currentLesson = next;
   const sample = samples[next.sample];
-  byId("lesson-title").textContent = next.title;
+  byId("lesson-title").textContent = isAppendix ? "Hardware & 3D prints" : next.title;
+  byId("lesson-duration").hidden = isAppendix;
   byId("lesson-duration").textContent = `${next.minutes} min`;
-  byId("lesson-summary").textContent = next.summary;
-  byId("lesson-content").innerHTML = next.content;
+  byId("lesson-summary").textContent = isAppendix ? "The full CAD explorer and optional desk-kit print files. Outside the timed course." : next.summary;
+  const isWelcome = !isAppendix && next.id === "welcome";
+  const isCode = !isAppendix && next.layout === "code";
+  const isVerify = !isAppendix && next.id === "verify";
+  document.body.classList.toggle("is-landing", isWelcome);
+  const skipLink = document.querySelector(".skip-link");
+  skipLink.href = isWelcome ? "#setup" : "#lesson";
+  skipLink.textContent = isWelcome ? "Skip introduction and start the workshop" : "Skip to lesson";
+  document.querySelector(".workshop-grid").classList.toggle("is-welcome", isWelcome);
+  document.querySelector(".workshop-grid").classList.toggle("is-appendix", isAppendix);
+  document.querySelector(".workshop-grid").classList.toggle("is-code", isCode);
+  document.querySelector(".workshop-grid").classList.toggle("is-guide", !isCode && !isWelcome && !isAppendix);
+  document.querySelector(".workspace").hidden = !isCode && !isVerify && (isAppendix || next.id !== "finish");
+  document.querySelector(".editor-panel").hidden = !isCode;
+  byId("jump-to-code").hidden = !isCode;
+  byId("host-visual").hidden = isAppendix || next.id !== "setup";
+  byId("verification-visual").hidden = !isVerify;
+  document.querySelector(".lesson-footer").hidden = isAppendix;
+  byId("hardware-intro").hidden = !isWelcome;
+  hardwareStory.setActive(isWelcome);
+  byId("hardware-appendix").hidden = !isAppendix;
+  const hardwareFrame = byId("hardware-viewer");
+  if (isAppendix && !hardwareFrame.hasAttribute("src")) {
+    hardwareFrame.src = new URL("./hardware/viewer.html", document.baseURI).href;
+  } else if (!isAppendix && hardwareFrame.hasAttribute("src")) {
+    hardwareFrame.removeAttribute("src");
+  }
+  byId("lesson-content").innerHTML = isAppendix ? "" : next.content;
+  if (!isAppendix && next.id === "setup") {
+    byId("usb-guide-download").href = new URL("../docs/usb-setup.md", import.meta.url).href;
+    const hostOs = detectHostOs(navigator);
+    for (const guide of document.querySelectorAll("[data-os]")) guide.open = guide.dataset.os === hostOs;
+    byId("usb-check-status").textContent = usbDetected
+      ? "✅ USB detected. Continue to Board check."
+      : serialAvailable ? "○ Not checked. Select the board to unlock Next." : "USB access isn’t available. Use desktop Chrome or Edge on HTTPS or localhost. You can still read the lessons from the sidebar.";
+    byId("usb-check-status").dataset.state = usbDetected ? "detected" : "waiting";
+  }
   byId("editor-filename").textContent = sample.name;
   editor.value = drafts.get(next.id) ?? sample.source;
   editor.setAttribute("aria-label", `Python source: ${sample.name}, ${next.title}`);
-  byId("setup-tools").hidden = next.id !== "setup";
-  byId("wifi-tools").hidden = next.id !== "weather";
-  byId("lesson-complete").checked = completed.has(next.id);
+  byId("setup-tools").hidden = !isVerify;
+  byId("show-solution").hidden = isAppendix || next.id !== "snake";
   const index = lessons.indexOf(next);
   byId("previous-lesson").disabled = index === 0;
   byId("next-lesson").disabled = index === lessons.length - 1;
   for (const lesson of lessons) {
     const link = byId(`nav-${lesson.id}`);
-    if (lesson.id === next.id) link.setAttribute("aria-current", "step");
+    if (!isAppendix && lesson.id === next.id) link.setAttribute("aria-current", "step");
     else link.removeAttribute("aria-current");
   }
-  updateDraftState();
+  if (isAppendix) byId("nav-appendix").setAttribute("aria-current", "page");
+  else byId("nav-appendix").removeAttribute("aria-current");
+  if (!isAppendix) updateDraftState();
+  updateProjectPrompt();
+  updateControls();
   setNavOpen(false);
-  document.title = `${next.title} · CrowPanel lab`;
+  document.title = `${isAppendix ? "Hardware & 3D prints" : next.title} · CrowPanel lab`;
   if (focus) {
     byId("lesson").focus({ preventScroll: true });
     byId("lesson").scrollIntoView({ block: "start", behavior: "instant" });
@@ -197,8 +290,10 @@ for (const lesson of lessons) {
   const link = document.createElement("a");
   link.id = `nav-${lesson.id}`;
   link.href = `#${lesson.id}`;
+  link.setAttribute("aria-label", `${lesson.navTitle}, ${lesson.minutes} minutes`);
   const number = document.createElement("span");
   number.className = "step-number";
+  number.textContent = String(lessons.indexOf(lesson) + 1);
   number.setAttribute("aria-hidden", "true");
   const title = document.createElement("span");
   title.textContent = lesson.navTitle;
@@ -218,6 +313,10 @@ for (const lesson of lessons) {
 }
 
 byId("nav-toggle").addEventListener("click", () => setNavOpen(byId("nav-toggle").getAttribute("aria-expanded") !== "true"));
+byId("jump-to-code").addEventListener("click", () => {
+  document.querySelector(".editor-panel").scrollIntoView({ block: "start" });
+  editor.focus();
+});
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && byId("nav-toggle").getAttribute("aria-expanded") === "true") {
     setNavOpen(false);
@@ -230,13 +329,75 @@ byId("previous-lesson").addEventListener("click", () => {
   if (previous) location.hash = previous.id;
 });
 byId("next-lesson").addEventListener("click", () => {
+  if (currentLesson.id === "setup" && !usbDetected) return;
   const next = lessons[lessons.indexOf(currentLesson) + 1];
   if (next) location.hash = next.id;
 });
-byId("lesson-complete").addEventListener("change", (event) => {
-  if (event.target.checked) completed.add(currentLesson.id);
-  else completed.delete(currentLesson.id);
-  updateProgress();
+byId("lesson-content").addEventListener("click", async (event) => {
+  if (event.target.closest("#usb-check-button")) {
+    if (checkingUsb || job) return;
+    checkingUsb = true;
+    usbDetected = false;
+    const status = byId("usb-check-status");
+    status.dataset.state = "waiting";
+    status.textContent = "Choose the CrowPanel’s USB serial port…";
+    try {
+      const selection = checkUsbDevice(navigator.serial);
+      updateControls();
+      await selection;
+      usbDetected = true;
+      status.dataset.state = "detected";
+      status.textContent = "✅ USB 1a86:7522 detected. Board unchanged. Continue to Board check.";
+    } catch (error) {
+      status.dataset.state = "error";
+      status.textContent = error?.name === "NotFoundError"
+        ? "No device selected. Check the cable and OS guide, then retry. Nothing on the board was changed."
+        : `USB check didn’t pass: ${error.message}`;
+    } finally {
+      checkingUsb = false;
+      updateControls();
+    }
+    return;
+  }
+  if (!event.target.closest("#copy-usb-prompt")) return;
+  const prompt = byId("usb-codex-prompt");
+  const status = byId("usb-copy-status");
+  try {
+    await navigator.clipboard.writeText(prompt.value);
+    status.textContent = "Copied. Paste into your Codex session.";
+  } catch {
+    prompt.focus();
+    prompt.select();
+    status.textContent = "Copy isn’t available here. The prompt is selected; copy it manually.";
+  }
+});
+
+function updateProjectPrompt() {
+  byId("project-codex-prompt").value = createProjectPrompt(byId("project-idea").value, { lessonTitle: currentLesson?.title });
+  byId("project-copy-status").textContent = "";
+}
+
+byId("project-idea").addEventListener("input", updateProjectPrompt);
+byId("copy-project-prompt").addEventListener("click", async () => {
+  const prompt = byId("project-codex-prompt");
+  const status = byId("project-copy-status");
+  try {
+    await navigator.clipboard.writeText(prompt.value);
+    status.textContent = "Copied. Ask Codex, review its code, then paste it into the editor.";
+  } catch {
+    prompt.focus();
+    prompt.select();
+    status.textContent = "Copy isn’t available. Copy the selected prompt manually.";
+  }
+});
+
+if (navigator.serial) navigator.serial.addEventListener("disconnect", () => {
+  usbDetected = false;
+  if (byId("usb-check-status")) {
+    byId("usb-check-status").dataset.state = "waiting";
+    byId("usb-check-status").textContent = "A serial device disconnected. Reconnect the board and check USB again.";
+  }
+  updateControls();
 });
 editor.addEventListener("input", () => {
   drafts.set(currentLesson.id, editor.value);
@@ -261,9 +422,29 @@ byId("download-button").addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   setStatus("Download requested. Check your browser's downloads for the Python file.");
 });
+byId("copy-console").addEventListener("click", async () => {
+  const button = byId("copy-console");
+  const status = byId("console-copy-status");
+  if (!hasConsoleOutput) {
+    status.textContent = "No serial output to copy yet.";
+    return;
+  }
+  button.disabled = true;
+  status.textContent = "Copying serial output…";
+  try {
+    await navigator.clipboard.writeText(consoleOutput.textContent);
+    status.textContent = "Serial output copied.";
+  } catch {
+    consoleOutput.focus();
+    status.textContent = "Copy isn’t available. Select the serial output and copy it manually.";
+  } finally {
+    button.disabled = false;
+  }
+});
 byId("clear-console").addEventListener("click", () => {
   consoleOutput.textContent = "";
   hasConsoleOutput = false;
+  byId("console-copy-status").textContent = "";
 });
 
 byId("connect-button").addEventListener("click", () => {
@@ -322,7 +503,7 @@ async function runEditor() {
     } else if (result?.stderr) {
       throw new Error("MicroPython reported an exception. Read the serial console; this is not a successful run.");
     } else {
-      setStatus("Script finished in RAM. Check the physical device yourself before marking the lesson complete.");
+      setStatus("Script finished in RAM. Check the physical device for the expected result.");
     }
   });
   await runTask;
@@ -368,6 +549,11 @@ byId("save-main").addEventListener("click", () => {
 });
 
 byId("install-button").textContent = `Install ${libraryFiles.length} workshop files`;
+async function refreshWorkshopImports() {
+  const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
+  if (result?.stderr) throw new Error("Files were written, but reloading workshop libraries failed. Retry installation before running Snake.");
+}
+
 byId("install-button").addEventListener("click", () => {
   if (!requireDevice()) return;
   if (!window.confirm("Write crowpanel.py, weather.py, slides.py and weather_ca.pem to the board, replacing files with those names? This enters the REPL and may interrupt an autostart program. No main.py will be created.")) return;
@@ -380,50 +566,67 @@ byId("install-button").addEventListener("click", () => {
         installed.push(file.name);
         appendOutput(`[Wrote ${file.name}]\n`);
       }
+      await refreshWorkshopImports();
     } catch (error) {
       byId("install-status").textContent = `Installation incomplete. ${installed.length} of ${libraryFiles.length} files written. Reconnect if needed and retry the full installation.`;
       throw error;
     }
-    byId("install-status").textContent = `All ${libraryFiles.length} workshop files written. Panel behavior still needs a physical check.`;
-    setStatus("Workshop files installed. No boot script was created. Run the station MAC exercise next.");
+    byId("install-status").textContent = `All ${libraryFiles.length} workshop files written and imports refreshed. Panel behavior still needs a physical check.`;
+    setStatus("Workshop libraries updated without rebooting. No boot script was created. Return to Snake when ready.");
   });
 });
 
-function pythonString(value) {
-  return JSON.stringify(value).replace(/[\u2028\u2029]/g, (character) => character === "\u2028" ? "\\u2028" : "\\u2029");
-}
-
-byId("wifi-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!requireDevice()) return;
-  const ssid = byId("wifi-ssid").value;
-  const password = byId("wifi-password").value;
-  const encoder = new TextEncoder();
-  if (!ssid || encoder.encode(ssid).length > 32) {
-    reportError(new Error("The network name must be between 1 and 32 UTF-8 bytes."));
-    return;
-  }
-  if (password && (encoder.encode(password).length < 8 || encoder.encode(password).length > 64)) {
-    reportError(new Error("Use a WPA2 password of 8–63 bytes, a 64-character hexadecimal key, or leave it empty for an open network."));
-    return;
-  }
-  if (encoder.encode(password).length === 64 && !/^[0-9a-fA-F]{64}$/.test(password)) {
-    reportError(new Error("A 64-character WPA2 key must contain only hexadecimal characters."));
-    return;
-  }
-  if (!window.confirm("Write Wi-Fi credentials in plaintext to wifi_config.py on this board, replacing that file? This enters the REPL and may interrupt a boot program. Remove the file before sharing the board.")) return;
-  void perform("wifi", "Writing Wi-Fi config directly over USB; output is suppressed…", async () => {
-    byId("wifi-status").textContent = "Writing configuration. Credentials are not shown in the editor or console.";
+byId("starter-button").addEventListener("click", () => {
+  if (!serialAvailable || job || checkingUsb || transitioning || (!usbDetected && !connection.connected)) return;
+  if (!window.confirm("Copy the four workshop files and 00_board_check.py to this board, replacing files with those names, then run a 60-second input demo? Back up existing files first. No main.py or autostart program will be created.")) return;
+  stopRequested = false;
+  resetVerification();
+  runTask = perform("run", "Connecting and preparing the board check…", async () => {
     try {
-      await connection.writeFile("wifi_config.py", `SSID = ${pythonString(ssid)}\nPASSWORD = ${pythonString(password)}\n`);
-    } catch {
-      byId("wifi-status").textContent = "Write failed. The device file may be incomplete. Reconnect and retry.";
-      throw new Error("Wi-Fi config write failed.");
+      if (!connection.connected) await connection.connect();
+      const files = [...libraryFiles, { name: "00_board_check.py", data: starterSource }];
+      for (const [index, file] of files.entries()) {
+        byId("starter-status").textContent = `Copying file ${index + 1} of ${files.length}: ${file.name}…`;
+        await connection.writeFile(file.name, file.data);
+      }
+      await refreshWorkshopImports();
+      byId("install-status").textContent = "Workshop files copied. The input demo is next.";
+      byId("starter-status").textContent = "👇 Press and release each control. Wait for the party screen after all five turn ✅.";
+      starterActive = true;
+      const result = await connection.execute(starterSource, { timeoutMs: 0 });
+      if (result?.stderr && !stopRequested) throw new Error("The demo reported an error. Read the serial console before retrying.");
+      if (stopRequested) celebrationShown = false;
+      byId("starter-status").textContent = stopRequested
+        ? "⏹ Check stopped. Try again when ready."
+        : celebrationShown ? "🎉 All five detected! Confirm the party screen below." : "⚠️ Check incomplete. Missing input or blank screen? Ask for help, then retry.";
+      setStatus("Board check ended. No boot file was created.");
+    } catch (error) {
+      celebrationShown = false;
+      byId("starter-status").textContent = "⚠️ Check didn’t finish. See the console, reconnect and retry. Some files may have been copied.";
+      throw error;
+    } finally {
+      starterActive = false;
     }
-    clearWifiFields();
-    byId("wifi-status").textContent = "wifi_config.py written; form fields cleared. Run the weather sample to test the network.";
-    setStatus("Wi-Fi config saved on the device. No network connection or weather fetch has been verified yet.");
-  }, { sensitive: true });
+  });
+});
+
+byId("confirm-display").addEventListener("click", () => {
+  if (!celebrationShown || job || !connection.connected || boardVerified) return;
+  boardVerified = true;
+  updateControls();
+  celebrateBoard();
+  byId("start-coding").focus();
+});
+
+byId("show-solution").addEventListener("click", () => {
+  if (currentLesson.id !== "snake") return;
+  if (editor.value !== samples.snake.source && editor.value !== snakeSolution
+      && !window.confirm("Replace your Snake draft with the full solution? Download your work first if you want to keep it.")) return;
+  editor.value = snakeSolution;
+  drafts.set(currentLesson.id, editor.value);
+  updateDraftState();
+  editor.focus();
+  setStatus("Full Snake solution loaded, not run. Review the input handler, then Run in RAM.");
 });
 
 byId("firmware-description").textContent = `MicroPython ${FIRMWARE.version} · ${FIRMWARE.board} · ${FIRMWARE.variant}. Flashing erases the device's firmware and files. A successful write is not a panel test.`;
@@ -467,7 +670,7 @@ byId("firmware-file").addEventListener("change", async () => {
   }
 });
 byId("flash-button").addEventListener("click", () => {
-  if (!serialAvailable || job || transitioning || firmwareLoading || firmwareSelectionError) return;
+  if (!serialAvailable || !usbDetected || job || checkingUsb || transitioning || firmwareLoading || firmwareSelectionError) return;
   if (connection.connected) {
     reportError(new Error("Disconnect the Python workspace before opening the firmware installer's port."));
     return;
@@ -494,8 +697,8 @@ byId("flash-button").addEventListener("click", () => {
       });
       if (result !== true && result?.success !== true) throw new Error("The firmware installer did not explicitly confirm a successful write. Check its log and reconnect to verify the runtime before continuing.");
       byId("flash-progress").value = 100;
-      byId("flash-status").textContent = "Firmware write completed without an installer error. Reset/reconnect and run a sample to verify MicroPython; the display has not been tested.";
-      setStatus("Firmware write complete. Reconnect the Python workspace, then install the workshop files.");
+      byId("flash-status").textContent = "✅ MicroPython written. Choose Connect & check board below. Display and inputs still need testing.";
+      setStatus("Firmware written. Next: check your board.");
     } catch (error) {
       byId("flash-progress").hidden = true;
       byId("flash-status").textContent = "Flash not confirmed. If writing began, the board may need reflashing. Check the installer log before retrying.";
@@ -518,8 +721,6 @@ window.addEventListener("beforeunload", (event) => {
     event.returnValue = "";
   }
 });
-window.addEventListener("pagehide", clearWifiFields);
 renderLesson();
-updateProgress();
 updateControls();
 if (totalMinutes !== 120) reportError(new Error("The course duration data does not add up to two hours."));

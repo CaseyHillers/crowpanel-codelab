@@ -61,6 +61,10 @@ class FakePort {
     });
   }
 
+  getInfo() {
+    return { usbVendorId: 0x1a86, usbProductId: 0x7522 };
+  }
+
   async open(options) {
     this.openCount++;
     this.openOptions = options;
@@ -95,8 +99,9 @@ function fixture(context, options = {}, callbacks = {}) {
   const port = new FakePort(options);
   const serial = new EventTarget();
   serial.requestCount = 0;
-  serial.requestPort = () => {
+  serial.requestPort = (requestOptions) => {
     serial.requestCount++;
+    serial.requestOptions = requestOptions;
     return options.requestPort ? options.requestPort() : Promise.resolve(port);
   };
   const previous = Object.getOwnPropertyDescriptor(globalThis, "navigator");
@@ -119,6 +124,9 @@ test("connect requests the chooser synchronously and releases reset/boot signals
   const { connection, port, serial, states } = fixture(context);
   const pending = connection.connect();
   assert.equal(serial.requestCount, 1);
+  assert.deepEqual(serial.requestOptions, {
+    filters: [{ usbVendorId: 0x1a86, usbProductId: 0x7522 }],
+  });
   await pending;
   assert.equal(connection.connected, true);
   assert.equal(connection.running, false);
@@ -132,6 +140,29 @@ test("connect requests the chooser synchronously and releases reset/boot signals
   assert.equal(port.closeCount, 1);
   assert.equal(connection.connected, false);
 });
+
+for (const [label, info] of [
+  ["another vendor", { usbVendorId: 0x10c4, usbProductId: 0x7522 }],
+  ["another product", { usbVendorId: 0x1a86, usbProductId: 0x7523 }],
+  ["a missing product", { usbVendorId: 0x1a86 }],
+  ["a non-USB port", {}],
+  ["missing identity metadata", null],
+  ["an unavailable getInfo API", undefined],
+]) {
+  test(`connect rejects ${label} before opening and permits retry`, async (context) => {
+    const { connection, port, states } = fixture(context);
+    port.getInfo = info === undefined ? undefined : () => info;
+    await assert.rejects(connection.connect(), /CrowPanel.*1a86:7522.*USB/i);
+    assert.equal(port.openCount, 0);
+    assert.equal(port.closeCount, 0);
+    assert.equal(port.writes.length, 0);
+    assert.equal(connection.connected, false);
+    assert.deepEqual(states, ["connecting", "disconnected"]);
+    delete port.getInfo;
+    await connection.connect();
+    assert.equal(connection.connected, true);
+  });
+}
 
 test("chooser cancellation and open failures leave no active connection", async (context) => {
   const { connection, states } = fixture(context, {

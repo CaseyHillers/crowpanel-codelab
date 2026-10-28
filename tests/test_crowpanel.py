@@ -119,7 +119,7 @@ class NativeBufferTests(unittest.TestCase):
                 crowpanel.native_buffer(bytes(length))
 
 
-class PanelTests(unittest.TestCase):
+class PanelFixture(unittest.TestCase):
     def setUp(self):
         self.clock = FakeClock()
         self.pins = {}
@@ -173,7 +173,10 @@ class PanelTests(unittest.TestCase):
         self.timer = patch.object(crowpanel, "time", self.clock)
         self.timer.start()
         self.addCleanup(self.timer.stop)
-        self.panel = crowpanel.CrowPanel()
+        self.panel = self.create_panel()
+
+    def create_panel(self):
+        return crowpanel.CrowPanel()
 
     def command_sequence(self):
         result = []
@@ -184,6 +187,8 @@ class PanelTests(unittest.TestCase):
                 result[-1][1].extend(data)
         return [(command, bytes(data)) for command, data, _ in result]
 
+
+class PanelTests(PanelFixture):
     def test_pins_spi_buttons_and_idle_power_match_the_board(self):
         for attribute, number in (("up", 6), ("down", 4), ("dial", 5), ("menu", 2), ("back", 1)):
             button = getattr(self.panel, attribute)
@@ -201,7 +206,7 @@ class PanelTests(unittest.TestCase):
         self.assertEqual(self.panel._spi.settings["phase"], 0)
         self.assertEqual(self.panel._spi.settings["firstbit"], self.machine.SPI.MSB)
         self.assertEqual(self.pins[7].level, 0)
-        self.assertEqual(self.pins[19].level, 0)
+        self.assertEqual(self.pins[19].level, 1)
         self.assertEqual(self.transfers, [])
         self.assertEqual(self.panel.buffer, b"\xff" * 3904)
 
@@ -362,6 +367,335 @@ class PanelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.panel.image(bytes(3199))
         self.assertEqual(self.panel.buffer, b"\xff" * 3904)
+
+
+class ControllerSelectionTests(PanelFixture):
+    def test_invalid_controller_is_rejected_before_pin_or_spi_setup(self):
+        for controller in ("", "JD79661", "unknown", None, 123):
+            with self.subTest(controller=controller):
+                with patch.object(self.machine, "Pin") as pin, patch.object(self.machine, "SPI") as spi:
+                    with self.assertRaises(ValueError):
+                        crowpanel.CrowPanel(controller=controller)
+                    pin.assert_not_called()
+                    spi.assert_not_called()
+
+    def test_explicit_ssd1680_preserves_default_protocol(self):
+        self.panel.show()
+        expected = self.command_sequence()
+        self.transfers.clear()
+        self.panel = crowpanel.CrowPanel(controller="ssd1680")
+        self.panel.show()
+        self.assertEqual(self.command_sequence(), expected)
+        self.assertEqual(self.pins[7].level, 0)
+
+
+class JD79661Tests(PanelFixture):
+    INITIALIZATION = [
+        (0x00, b"\xf7\x8a"), (0x01, b"\x03\x00\x3f\x3f\x03"),
+        (0x03, b"\x00"), (0x06, b"\x27\x27\x2f"), (0x30, b"\x0d"),
+        (0x60, b"\x22"), (0x82, b"\x07"), (0xE3, b"\x88"),
+        (0x41, b"\x00"), (0x61, b"\x80\x00\xfa"),
+        (0x65, b"\x00\x00\x00"), (0x50, b"\xb7"),
+    ]
+
+    def create_panel(self):
+        panel = crowpanel.CrowPanel(controller="jd79661")
+        self.pins[9].level = 1
+        self.on_command = self.model_refresh_busy
+        return panel
+
+    def model_refresh_busy(self, data):
+        if data == b"\x17":
+            started = self.clock.ticks_ms()
+            self.pins[9].read = lambda: int(
+                self.clock.ticks_diff(self.clock.ticks_ms(), started) >= 10)
+
+    def lut_sequence(self, alternate=False):
+        values = (0x00, 0x60, 0x90, 0x10, 0x20) if alternate else (0x00, 0x60, 0x90, 0x20, 0x10)
+        return [
+            (command, bytes((0x01, value, 0x14, 0x14, 0x01, 0x00, 0x00, 0x01)) + bytes(48))
+            for command, value in zip((0x20, 0x21, 0x24, 0x22, 0x23), values)
+        ]
+
+    def assert_power_and_bus_released(self):
+        self.assertEqual(self.pins[7].level, 0)
+        self.assertEqual(self.pins[14].level, 1)
+        self.assertEqual(self.pins[13].level, 1)
+
+    def test_complete_vendor_initialization_refresh_luts_and_sleep(self):
+        self.panel.pixel(249, 0, crowpanel.BLACK)
+        original = bytes(self.panel.buffer)
+        bitmap = bytearray(b"\xff" * 4000)
+        bitmap[3984] = 0x7F
+        self.panel.show()
+        self.assertEqual(self.command_sequence(), self.INITIALIZATION + [
+            (0x50, b"\xd7"), (0x13, bytes(bitmap)),
+        ] + self.lut_sequence() + [(0x17, b"\xa5"), (0x07, b"\xa5")])
+        self.assertEqual(self.panel.buffer, original)
+        self.assert_power_and_bus_released()
+
+    def test_asymmetric_landscape_pixels_are_not_horizontally_mirrored(self):
+        for landscape_x, landscape_y in ((0, 0), (249, 121), (17, 8), (121, 63)):
+            self.panel.pixel(landscape_x, landscape_y, crowpanel.BLACK)
+        original = bytes(self.panel.buffer)
+        expected = bytearray(b"\xff" * 4000)
+        expected[0] = 0x7F
+        expected[3999] = 0xBF
+        expected[273] = 0x7F
+        expected[1943] = 0xFE
+        self.panel.show()
+        bitmaps = [data for command, data in self.command_sequence() if command == 0x13]
+        self.assertEqual(bitmaps, [bytes(expected)])
+        self.assertEqual(self.panel.buffer, original)
+
+    def test_reset_and_initialization_follow_vendor_hardware_delays(self):
+        self.panel.show()
+        self.assertEqual(self.pins[10].history, [(100, 1), (110, 0), (210, 1)])
+        first_command_time = next(timestamp for command, _, timestamp in self.transfers if command)
+        self.assertEqual(first_command_time, 310)
+
+    def test_black_frame_keeps_native_padding_white(self):
+        self.panel.fill(crowpanel.BLACK)
+        original = bytes(self.panel.buffer)
+        self.panel.show()
+        bitmaps = [data for command, data in self.command_sequence() if command == 0x13]
+        self.assertEqual(bitmaps, [(b"\x00" * 15 + b"\x3f") * 250])
+        self.assertEqual(self.panel.buffer, original)
+
+    def test_lut_polarity_alternates_on_consecutive_refreshes(self):
+        for alternate in (False, True, False):
+            with self.subTest(alternate=alternate):
+                self.transfers.clear()
+                self.panel.show()
+                luts = [(command, data) for command, data in self.command_sequence()
+                        if command in (0x20, 0x21, 0x24, 0x22, 0x23)]
+                self.assertEqual(len(luts), 5)
+                self.assertEqual(luts[:3], self.lut_sequence(alternate)[:3])
+                self.assertEqual(dict(luts), dict(self.lut_sequence(alternate)))
+
+    def test_lut_alternation_is_per_panel(self):
+        self.panel.show()
+        self.panel = self.create_panel()
+        self.transfers.clear()
+        self.panel.show()
+        luts = [(command, data) for command, data in self.command_sequence()
+                if command in (0x20, 0x21, 0x24, 0x22, 0x23)]
+        self.assertEqual(luts, self.lut_sequence())
+
+    def test_busy_low_waits_until_high(self):
+        started = self.clock.ticks_ms()
+        self.pins[9].read = lambda: int(self.clock.ticks_diff(self.clock.ticks_ms(), started) >= 40)
+        self.panel._wait_busy()
+        self.assertGreaterEqual(self.clock.ticks_diff(self.clock.ticks_ms(), started), 40)
+        self.assertLess(self.clock.ticks_diff(self.clock.ticks_ms(), started), 50)
+        self.assertEqual(self.transfers, [])
+
+    def test_busy_high_is_idle_without_timeout(self):
+        started = self.clock.microseconds
+        self.panel._wait_busy()
+        self.assertLess(self.clock.microseconds - started, 1000)
+        self.assertEqual(self.transfers, [])
+
+    def test_busy_timeout_is_fifteen_seconds_and_handles_tick_wrap(self):
+        for start in (0, self.clock.PERIOD - 5000):
+            with self.subTest(start=start):
+                self.clock.microseconds = start * 1000
+                self.pins[9].level = 0
+                with self.assertRaisesRegex(OSError, "BUSY"):
+                    self.panel._wait_busy()
+                elapsed = self.clock.ticks_diff(self.clock.ticks_ms(), start)
+                self.assertGreaterEqual(elapsed, 15000)
+                self.assertLess(elapsed, 15010)
+                self.assertEqual(self.transfers, [])
+
+    def test_initialization_timeout_cuts_power_without_any_commands(self):
+        self.pins[9].level = 0
+        with self.assertRaisesRegex(OSError, "BUSY"):
+            self.panel.show()
+        self.assertGreaterEqual(self.clock.ticks_ms(), 15310)
+        self.assertLess(self.clock.ticks_ms(), 15330)
+        self.assertEqual(self.command_sequence(), [])
+        self.assert_power_and_bus_released()
+
+    def test_refresh_timeout_never_sends_sleep_to_busy_panel(self):
+        refresh_started = []
+
+        def become_busy(data):
+            if data == b"\x17":
+                refresh_started.append(self.clock.ticks_ms())
+                self.pins[9].level = 0
+
+        self.on_command = become_busy
+        with self.assertRaisesRegex(OSError, "BUSY"):
+            self.panel.show()
+        self.assertEqual(len(refresh_started), 1)
+        elapsed = self.clock.ticks_diff(self.clock.ticks_ms(), refresh_started[0])
+        self.assertGreaterEqual(elapsed, 15000)
+        self.assertLess(elapsed, 15030)
+        self.assertEqual(self.command_sequence()[-1], (0x17, b"\xa5"))
+        self.assertNotIn(0x07, [command for command, _ in self.command_sequence()])
+        self.assert_power_and_bus_released()
+
+    def test_refresh_waits_for_idle_before_deep_sleep(self):
+        refresh_started = []
+
+        def become_busy(data):
+            if data == b"\x17":
+                refresh_started.append(self.clock.ticks_ms())
+                self.pins[9].read = lambda: int(
+                    self.clock.ticks_diff(self.clock.ticks_ms(), refresh_started[0]) >= 70)
+
+        self.on_command = become_busy
+        self.panel.show()
+        sleep_time = next(timestamp for command, data, timestamp in self.transfers
+                          if command and data == b"\x07")
+        self.assertGreaterEqual(self.clock.ticks_diff(sleep_time, refresh_started[0]), 70)
+        poweroff_time = self.pins[7].history[-1][0]
+        self.assertGreaterEqual(self.clock.ticks_diff(poweroff_time, sleep_time), 20)
+        self.assert_power_and_bus_released()
+
+    def test_refresh_spacing_handles_tick_wraparound(self):
+        self.clock.microseconds = (self.clock.PERIOD - 1000) * 1000
+        self.panel.show()
+        first = next(timestamp for command, data, timestamp in self.transfers
+                     if command and data == b"\x17")
+        self.transfers.clear()
+        self.panel.show()
+        second = next(timestamp for command, data, timestamp in self.transfers
+                      if command and data == b"\x17")
+        self.assertGreaterEqual(self.clock.ticks_diff(second, first), 2000)
+        self.assert_power_and_bus_released()
+
+    def test_delayed_busy_assertion_must_complete_before_sleep_or_poweroff(self):
+        for start in (0, self.clock.PERIOD - 350):
+            with self.subTest(start=start):
+                self.clock.microseconds = start * 1000
+                self.transfers.clear()
+                self.panel = self.create_panel()
+                refresh_started = []
+
+                def delayed_busy(data):
+                    if data == b"\x17":
+                        refresh_started.append(self.clock.ticks_ms())
+                        self.pins[9].read = lambda: int(not 20 <= self.clock.ticks_diff(
+                            self.clock.ticks_ms(), refresh_started[0]) < 90)
+
+                self.on_command = delayed_busy
+                self.panel.show()
+                self.assertEqual(len(refresh_started), 1)
+                sleep_time = next(timestamp for command, data, timestamp in self.transfers
+                                  if command and data == b"\x07")
+                self.assertGreaterEqual(self.clock.ticks_diff(sleep_time, refresh_started[0]), 90)
+                self.assertLess(self.clock.ticks_diff(sleep_time, refresh_started[0]), 100)
+                poweroff_time = self.pins[7].history[-1][0]
+                self.assertGreaterEqual(self.clock.ticks_diff(poweroff_time, sleep_time), 20)
+                self.assertEqual(self.command_sequence()[-2:], [(0x17, b"\xa5"), (0x07, b"\xa5")])
+                self.assert_power_and_bus_released()
+
+    def test_busy_never_asserting_times_out_without_sleep_or_controller_fallback(self):
+        for start in (0, self.clock.PERIOD - 350):
+            with self.subTest(start=start):
+                self.clock.microseconds = start * 1000
+                self.transfers.clear()
+                self.panel = self.create_panel()
+                refresh_started = []
+
+                def remain_idle(data):
+                    if data == b"\x17":
+                        refresh_started.append(self.clock.ticks_ms())
+                        self.pins[9].read = lambda: 1
+
+                self.on_command = remain_idle
+                with self.assertRaisesRegex(OSError, "BUSY"):
+                    self.panel.show()
+                self.assertEqual(len(refresh_started), 1)
+                poweroff_time = self.pins[7].history[-1][0]
+                elapsed = self.clock.ticks_diff(poweroff_time, refresh_started[0])
+                self.assertGreaterEqual(elapsed, 1000)
+                self.assertLess(elapsed, 1010)
+                self.assertEqual(self.command_sequence(), self.INITIALIZATION + [
+                    (0x50, b"\xd7"), (0x13, b"\xff" * 4000),
+                ] + self.lut_sequence() + [(0x17, b"\xa5")])
+                self.assert_power_and_bus_released()
+
+    def test_bitmap_spi_failure_releases_power_and_bus(self):
+        self.fail_write = lambda command, data: not command and len(data) == 4000
+        with self.assertRaisesRegex(OSError, "SPI failed"):
+            self.panel.show()
+        self.assert_power_and_bus_released()
+
+    def test_cleanup_failure_does_not_replace_original_refresh_exception(self):
+        original = OSError("original refresh failure")
+        cleanup_attempts = []
+
+        def fail_refresh_and_sleep(data):
+            if data == b"\x13":
+                raise original
+            if data == b"\x07":
+                cleanup_attempts.append(data)
+                raise RuntimeError("secondary cleanup failure")
+
+        self.on_command = fail_refresh_and_sleep
+        with self.assertRaises(OSError) as raised:
+            self.panel.show()
+        self.assertIs(raised.exception, original)
+        self.assertEqual(cleanup_attempts, [b"\x07"])
+        self.assert_power_and_bus_released()
+
+    def test_initialization_failure_while_busy_cuts_power_without_cleanup_commands(self):
+        original = OSError("initialization failed while busy")
+
+        def fail_initialization(data):
+            if data == b"\x00":
+                self.pins[9].level = 0
+                raise original
+
+        self.on_command = fail_initialization
+        with self.assertRaises(OSError) as raised:
+            self.panel.show()
+        self.assertIs(raised.exception, original)
+        self.assertEqual(self.command_sequence(), [(0x00, b"")])
+        self.assert_power_and_bus_released()
+
+    def test_cleanup_failure_does_not_replace_original_spi_exception(self):
+        original = OSError("original bitmap SPI failure")
+        cleanup_attempts = []
+
+        def fail_bitmap_and_sleep(command, data):
+            if not command and len(data) == 4000:
+                raise original
+            if command and data == b"\x07":
+                cleanup_attempts.append(data)
+                raise RuntimeError("secondary sleep SPI failure")
+            return False
+
+        self.fail_write = fail_bitmap_and_sleep
+        with self.assertRaises(OSError) as raised:
+            self.panel.show()
+        self.assertIs(raised.exception, original)
+        self.assertEqual(cleanup_attempts, [b"\x07"])
+        self.assert_power_and_bus_released()
+
+    def test_interrupted_refresh_while_busy_cuts_power_without_cleanup_commands(self):
+        original = KeyboardInterrupt()
+
+        def interrupt_refresh(data):
+            if data == b"\x17":
+                self.pins[9].level = 0
+                raise original
+
+        self.on_command = interrupt_refresh
+        with self.assertRaises(KeyboardInterrupt) as raised:
+            self.panel.show()
+        self.assertIs(raised.exception, original)
+        self.assertEqual(self.command_sequence()[-1], (0x17, b""))
+        self.assert_power_and_bus_released()
+
+    def test_deep_sleep_spi_failure_still_cuts_power(self):
+        self.fail_write = lambda command, data: command and data == b"\x07"
+        with self.assertRaisesRegex(OSError, "SPI failed"):
+            self.panel.show()
+        self.assert_power_and_bus_released()
 
 
 if __name__ == "__main__":

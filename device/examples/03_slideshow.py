@@ -2,7 +2,7 @@ import time
 from crowpanel import CrowPanel, WHITE
 from slides import SLIDES, WIDTH, HEIGHT, STRIDE
 
-panel = CrowPanel()
+panel = CrowPanel(controller="jd79661")
 index = 0
 previous = (1, 1)
 changed = True

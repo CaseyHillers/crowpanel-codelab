@@ -22,74 +22,122 @@
       <aside class="sidebar" id="course-nav" aria-label="Course navigation">
         <p class="sidebar-heading">Your workshop</p>
         <nav aria-label="Lessons"><ol id="lesson-list" class="lesson-list"></ol></nav>
-        <div class="course-progress"><label for="course-progress">Course progress</label><progress id="course-progress" max="7" value="0"></progress><p id="progress-text">0 of 7 marked complete</p></div>
-        <p class="sidebar-note">Read at your own pace. Completion is yours to check, not a device test.</p>
+        <a id="nav-appendix" class="appendix-link" href="#appendix">Appendix · Hardware &amp; 3D prints</a>
+        <p class="sidebar-note">Your board. Your code.<br>No build server needed.</p>
       </aside>
       <main class="sheet" id="main">
         <div id="capability-warning" class="notice" role="status" hidden></div>
         <div class="workshop-grid">
           <article class="lesson" id="lesson" tabindex="-1" aria-labelledby="lesson-title">
-            <div class="lesson-heading"><h1 id="lesson-title">Welcome to the lab</h1><span id="lesson-duration" class="duration">10 min</span></div>
-            <p id="lesson-summary" class="lesson-summary">Four small programs. One e-paper display. Everything runs from this browser.</p>
+            <div class="lesson-heading"><h1 id="lesson-title">Meet your CrowPanel</h1><span id="lesson-duration" class="duration">10 min</span></div>
+            <p id="lesson-summary" class="lesson-summary">Explore the board, find its controls, then bring it to life with MicroPython.</p>
+            <button id="jump-to-code" class="code-jump text-button" type="button" hidden>Jump to the code ↓</button>
+            <section id="hardware-intro" class="hardware-story" aria-label="From bare board to desk display" hidden>
+              <div class="story-visual">
+                <iframe id="story-viewer" title="Scroll-driven CrowPanel hardware illustration" sandbox="allow-scripts" referrerpolicy="no-referrer" tabindex="-1"></iframe>
+                <nav class="story-nav" aria-label="Workshop introduction"><a class="brand" href="#welcome">CrowPanel lab</a><a class="story-skip" href="#setup">Start the workshop ↗</a></nav>
+                <div class="story-copy">
+                  <section class="story-beat"><h1>A small screen.<br>Your own ideas.</h1><p>250 × 122 pixels.<br>Make every one your own.</p><p>Two hours. Python. Your browser.</p></section>
+                  <section class="story-beat" inert aria-hidden="true"><h2>Turn it over.<br>Take control.</h2><p>Up. Down. Press. Menu. Back.<br>Five inputs. What will you build?</p></section>
+                  <section class="story-beat" inert aria-hidden="true"><h2>One cable.<br>Real Python.</h2><p>Edit here. Run on your board.<br>Add Wi-Fi. Check the weather.</p><p>No compiler. No build server.</p></section>
+                  <section class="story-beat" inert aria-hidden="true"><h2>Make it.<br>Make it yours.</h2><p>From a bare board to your desk.<br>An optional printed case finishes the job.</p><a class="story-start" href="#setup">Let’s bring yours to life →</a><a class="story-print" href="#appendix">Explore the model &amp; free print files</a><p class="story-disclaimer">Print your own. The case is optional.</p></section>
+                </div>
+                <div class="story-footer"><span class="story-scroll">Scroll to explore ↓</span><span class="story-position" aria-hidden="true">01 / 04</span><p id="story-status" role="status">Illustrative CAD · not live device output</p></div>
+              </div>
+            </section>
+            <section id="hardware-appendix" hidden aria-label="Interactive hardware reference">
+              <iframe id="hardware-viewer" title="Interactive CrowPanel board, case, and stand CAD explorer" sandbox="allow-scripts" referrerpolicy="no-referrer" aria-describedby="hardware-viewer-help"></iframe>
+              <p id="hardware-viewer-help" class="hardware-caption">Drag to orbit; scroll or pinch to zoom. Focus the viewer and use arrow keys to orbit, +/− to zoom, and Home to reset. Explore the board, assembly, exploded kit, and print layout. CAD reference—not live device output.</p>
+              <p><a href="./hardware/viewer.html" target="_blank" rel="noopener noreferrer">Open full-size viewer<span class="sr-only"> (opens in a new tab)</span></a></p>
+              <details class="hardware-fallback"><summary>Still reference (no WebGL required)</summary><img src="./hardware/front-view.png" alt="Front CAD reference of the CrowPanel with its optional enclosure and two stand feet" width="1440" height="1000" loading="lazy"></details>
+              <h2>Print the desk kit</h2>
+              <p>Three free STL files, four printed pieces. Use millimetres at 100% scale. The two feet are identical—do not mirror them. Do not print the assembled hardware model.</p>
+              <ul class="print-downloads">
+                <li><a href="./prints/case-front-switch-slot.stl" download>Front enclosure · STL</a><span>Print 1</span></li>
+                <li><a href="./prints/case-back-switch-slot.stl" download>Rear enclosure · STL</a><span>Print 1</span></li>
+                <li><a href="./prints/stand-20deg-print-two.stl" download>20° stand foot · STL</a><span>Print 2</span></li>
+              </ul>
+              <p><a href="./prints/README.md">Print notes &amp; provenance</a> · <a href="./prints/SHA256SUMS" download>File checksums</a> · <a href="./hardware/README.md">CAD sources &amp; notices</a></p>
+              <p class="hardware-caption">Case and stand fit verified. Print files owned by Casey Hillers and shared free of charge. Third-party reference geometry and software retain their own notices.</p>
+              <p><a href="#welcome">Back to the introduction</a> · <a href="#setup">Continue to board setup →</a></p>
+            </section>
+            <figure id="host-visual" class="host-visual" hidden>
+              <svg viewBox="0 0 680 170" role="img" aria-labelledby="host-diagram-title"><title id="host-diagram-title">Desktop Chrome or Edge connects to your CrowPanel over a USB data cable</title><g fill="none" stroke="currentColor" stroke-width="2"><rect x="18" y="18" width="176" height="102" rx="4"/><path d="M18 40h176M88 120v18m-36 0h108M207 77h53m0 0h120m0 0h53"/><rect x="262" y="64" width="111" height="26" rx="12"/><rect x="452" y="18" width="204" height="122" rx="4"/><rect x="466" y="32" width="176" height="94"/></g><g fill="currentColor" font-family="system-ui,sans-serif" text-anchor="middle"><text x="106" y="83" font-size="18">Chrome / Edge</text><text x="319" y="51" font-size="15">USB-C data</text><text x="554" y="82" font-size="19">CrowPanel 2.13″</text><text x="106" y="165" font-size="13">Your computer</text><text x="319" y="165" font-size="13">Not a charge-only cable</text><text x="554" y="165" font-size="13">Your Python runs here</text></g></svg>
+            </figure>
+            <figure id="verification-visual" class="verification-visual" hidden>
+              <svg viewBox="0 0 640 185" role="img" aria-labelledby="verification-diagram-title"><title id="verification-diagram-title">Check for a fresh display change when using the factory demo, not just a stored image</title><g fill="none" stroke="currentColor" stroke-width="2"><rect x="12" y="16" width="248" height="130" rx="5"/><rect x="24" y="28" width="224" height="106"/><path d="M48 58h96m-96 20h144m-144 20h112M284 80h64m-12-12 12 12-12 12"/><rect x="372" y="16" width="248" height="130" rx="5"/><rect x="384" y="28" width="224" height="106"/><circle cx="437" cy="66" r="17"/><path d="M420 105h134m-71-48h96m-96 20h74"/></g><g fill="currentColor" font-family="system-ui,sans-serif" text-anchor="middle" font-size="15"><text x="136" y="177">Plug in</text><text x="496" y="177">Use the demo controls</text></g></svg>
+              <figcaption>Look for a changing image on your board. Illustration only.</figcaption>
+            </figure>
             <div id="lesson-content"></div>
             <section id="setup-tools" class="lesson-tools" aria-labelledby="setup-title" hidden>
-              <h2 id="setup-title">Install the runtime</h2>
+              <p id="setup-usb-note" class="notice"><a href="#setup">Check browser USB access first</a> to enable installation. You can still read the lesson.</p>
+              <h2 id="setup-title">1. Install MicroPython · once</h2>
+              <p>Python for your board. Already installed? Skip to step 2.</p>
+              <p><strong>Flashing erases firmware, files, and credentials.</strong> Check the factory demo and back up first.</p>
               <p id="firmware-description"></p>
               <p><a id="firmware-source" href="https://micropython.org/download/ESP32_GENERIC_S3/" target="_blank" rel="noreferrer">Official firmware &amp; board variants <span class="sr-only">(opens in a new tab)</span></a></p>
-              <label for="firmware-file">Local firmware .bin (optional)</label>
+              <details class="firmware-options"><summary>Use a different firmware file</summary>
+              <label for="firmware-file">Local firmware .bin</label>
               <input id="firmware-file" type="file" accept=".bin,application/octet-stream" aria-describedby="firmware-file-help">
               <p id="firmware-file-help" class="help">Choose the complete ESP32-S3 .bin, not .app-bin or .uf2. Use a local file if your network blocks the download. Verify your board's PSRAM variant first.</p>
-              <button id="flash-button" class="danger" type="button" data-hardware>Erase &amp; flash MicroPython…</button>
+              </details>
+              <button id="flash-button" class="danger" type="button" data-hardware>Install MicroPython…</button>
               <label class="sr-only" for="flash-progress">Firmware writing progress</label><progress id="flash-progress" max="100" value="0" hidden></progress>
               <p id="flash-status" class="help" role="status">No firmware has been flashed in this session.</p>
-              <h2>Install the workshop files</h2>
-              <p>After flashing, reconnect with <strong>Connect device</strong>. Install the display, weather and slide libraries plus <code>weather_ca.pem</code> on the board. Existing files with these names will be replaced; this does not create an autostart program.</p>
+              <h2>2. Try every control</h2>
+              <p>Copies the workshop files, then runs the check. No boot program is created.</p>
+              <button id="starter-button" class="primary" type="button" data-hardware>Connect &amp; check board…</button>
+              <p id="starter-status" class="help" role="status">Press → release → ✅. Try all five within 60 seconds.</p>
+              <ul class="starter-inputs" aria-label="Observed input events"><li data-input="Up" data-state="waiting">○ Up</li><li data-input="Down" data-state="waiting">○ Down</li><li data-input="Press" data-state="waiting">○ Press</li><li data-input="Menu" data-state="waiting">○ Menu</li><li data-input="Back" data-state="waiting">○ Back</li></ul>
+              <section id="verification-result" class="verification-result" aria-labelledby="verification-result-title" hidden>
+                <h3 id="verification-result-title">🎉 Five controls detected!</h3>
+                <p id="verification-display-help">Wait for the party screen on your e-paper display.</p>
+                <button id="confirm-display" type="button" disabled>I see the party screen</button>
+                <p id="verification-success" role="status" hidden>✅ Board verified. Time to make something!</p>
+                <a id="start-coding" class="coding-link" href="#snake" hidden>Start coding Snake →</a>
+              </section>
+              <p class="help">✅ means a press and release was received. Confirm the physical party screen to unlock Next. Stop ends the check early.</p>
+              <details><summary>Advanced: install libraries without running the demo</summary>
+              <p>Connect device first. This only copies the four workshop files.</p>
               <button id="install-button" type="button" data-device>Install 4 workshop files</button>
               <p id="install-status" class="help" role="status">Not installed in this browser session.</p>
-            </section>
-            <section id="wifi-tools" class="lesson-tools" aria-labelledby="wifi-title" hidden>
-              <h2 id="wifi-title">Set the device's Wi-Fi</h2>
-              <p>Use an approved 2.4 GHz WPA2-Personal or open network. This workshop does not configure corporate 802.1X. MAC registration alone is not enough.</p>
-              <form id="wifi-form" autocomplete="off">
-                <label for="wifi-ssid">Network name (SSID)</label><input id="wifi-ssid" name="workshop-ssid" type="text" maxlength="32" autocomplete="off" required>
-                <label for="wifi-password">Wi-Fi password</label><input id="wifi-password" name="workshop-password" type="password" autocomplete="new-password" aria-describedby="wifi-help">
-                <p id="wifi-help" class="help">Sent only over USB into wifi_config.py on the device, in plaintext. Never added to the editor, browser storage or workshop logs. Both fields clear after a successful write and when you leave this lesson. Leave the password empty only for an open network.</p>
-                <button id="wifi-save" type="submit" data-device>Write Wi-Fi config to device</button>
-              </form>
-              <p id="wifi-status" class="help" role="status">No Wi-Fi credentials sent in this session.</p>
+              </details>
             </section>
             <footer class="lesson-footer">
-              <label class="completion"><input id="lesson-complete" type="checkbox"> I’ve completed this step</label>
               <div class="lesson-paging"><button id="previous-lesson" type="button">Previous</button><button id="next-lesson" type="button">Next lesson →</button></div>
             </footer>
           </article>
           <section class="workspace" aria-label="Device workspace">
             <section class="connection" aria-labelledby="connection-title">
               <div class="section-heading"><h2 id="connection-title">Device</h2><span id="connection-state" role="status">Disconnected</span></div>
-              <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="disconnect-button" type="button" disabled>Disconnect</button></div>
-              <p id="connection-help" class="help">USB serial · 115200 baud · select your board's port</p>
+              <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="stop-button" type="button" disabled>Stop</button><button id="disconnect-button" type="button" disabled>Disconnect</button></div>
+              <p id="connection-help" class="help">USB serial · close other serial apps before connecting.</p>
             </section>
             <section class="editor-panel" aria-labelledby="editor-title">
               <div class="section-heading"><h2 id="editor-title">Python editor</h2><span id="draft-state">Sample</span></div>
-              <div class="file-line"><span id="editor-filename">01_mac.py</span><button id="reset-editor" class="text-button" type="button">Reset sample</button></div>
+              <div class="file-line"><span id="editor-filename">01_mac.py</span><button id="show-solution" class="text-button" type="button" hidden>Show full solution</button><button id="reset-editor" class="text-button" type="button">Reset sample</button></div>
               <label class="sr-only" for="code-editor">Python source for the current lesson</label>
               <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-describedby="editor-help"></textarea>
-              <p id="editor-help" class="help editor-help">Edits stay per lesson in this tab only. Tab moves focus. Ctrl/⌘ + Enter runs. Download before closing.</p>
-              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="stop-button" type="button" disabled>Stop</button><button id="download-button" type="button">Download .py</button></div>
+              <p id="editor-help" class="help editor-help">Ctrl/⌘ + Enter to run · Tab moves focus · Edits stay in this tab; download to keep them.</p>
+              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="download-button" type="button">Download .py</button></div>
+              <details id="project-prompts" class="save-details"><summary>Make something new with Codex</summary>
+                <p>Describe your idea. Copy a hardware-aware prompt into Codex, then paste its Python into this editor. Review it before running; this site never sends code to an AI service.</p>
+                <label for="project-idea">What should your board do?</label>
+                <textarea id="project-idea" rows="3" placeholder="Use Up and Down to choose a message, and Press to show it."></textarea>
+                <div class="usb-copy-actions"><button id="copy-project-prompt" type="button">Copy coding prompt</button><span id="project-copy-status" role="status"></span></div>
+                <label class="sr-only" for="project-codex-prompt">Generated Codex coding prompt</label><textarea id="project-codex-prompt" rows="9" readonly spellcheck="false"></textarea>
+                <p>Don’t include Wi-Fi passwords, private data, or corporate secrets in your idea or prompts. Built-in screen text is ASCII; slow e-paper refreshes are normal.</p>
+              </details>
               <details class="save-details"><summary>Run automatically on boot</summary><p>Saving as <code>main.py</code> overwrites that file and runs this program on every reset. Keep USB access so you can stop it with Ctrl-C.</p><button id="save-main" type="button" data-device>Save as main.py…</button></details>
             </section>
             <section class="console-panel" aria-labelledby="console-title">
-              <div class="section-heading"><h2 id="console-title">Serial console</h2><button id="clear-console" class="text-button" type="button">Clear</button></div>
+              <div class="section-heading"><h2 id="console-title">Serial console</h2><div class="console-actions"><button id="copy-console" class="text-button" type="button" aria-label="Copy serial output">Copy</button><button id="clear-console" class="text-button" type="button">Clear</button></div></div>
               <pre id="console-output" tabindex="0" aria-label="Device output">Connect a board to see device output here.
 No code runs automatically.</pre>
+              <p id="console-copy-status" class="action-status" role="status" aria-live="polite" aria-atomic="true"></p>
               <p id="action-status" class="action-status" role="status" aria-live="polite">Ready to read. No device required.</p>
               <p id="action-error" class="action-error" role="alert" hidden></p>
             </section>
-            <figure class="panel-preview">
-              <div class="preview-caption"><figcaption>Display layout preview</figcaption><span>250 × 122 px</span></div>
-              <svg id="display-preview" viewBox="0 0 250 122" width="250" height="122" role="img" aria-label="Illustrative e-paper layout, not output from a connected device"><rect x="0.5" y="0.5" width="249" height="121" fill="white" stroke="#131416"/><text x="14" y="29" fill="#131416" font-size="14" font-family="monospace">Hello, CrowPanel!</text><path d="M14 41h222" stroke="#131416"/><text x="14" y="66" fill="#131416" font-size="12" font-family="monospace">250 x 122 pixels</text><text x="14" y="84" fill="#131416" font-size="12" font-family="monospace">Black, white, your code.</text><text x="14" y="109" fill="#131416" font-size="12" font-family="monospace">up / down / press</text></svg>
-              <p class="help">Illustration only. Not a simulator or a live device view.</p>
-            </figure>
           </section>
         </div>
       </main>
@@ -98,13 +146,14 @@ No code runs automatically.</pre>
       <section class="noscript-course">
         <h1>CrowPanel MicroPython workshop</h1>
         <p>JavaScript is disabled. You can read this workshop outline; the interactive lessons, editor and USB controls require JavaScript. No server account or local compiler is needed.</p>
-        <h2>1. Welcome · 10 minutes</h2><p>Bring a CrowPanel 2.13-inch ESP32-S3 e-paper board, a USB data cable, a desktop Chrome or Edge browser, and permission to replace the device firmware. Hardware compatibility and USB enumeration must be checked on your own board. This course does not claim device verification.</p>
-        <h2>2. Setup · 15 minutes</h2><p>Back up your board first. Obtain the correct complete ESP32-S3 OCTSPIRAM MicroPython .bin from the official download page. Flashing erases existing firmware and files. Reconnect after flashing and install crowpanel.py, weather.py, slides.py and weather_ca.pem. Close other serial monitors first.</p>
-        <h2>3. Exercise: station MAC · 10 minutes</h2><p>Run device/examples/01_mac.py. Record the Wi-Fi station MAC, reset the board and compare it. Reading a MAC does not require joining Wi-Fi and does not establish corporate-network compatibility.</p>
-        <h2>4. Exercise: hello, e-paper · 20 minutes</h2><p>Run device/examples/02_hello.py. Change its text and coordinates, then refresh the display once. Landscape is 250 × 122 pixels. Pins: SPI clock 12, MOSI 11, CS 14, DC 13, reset 10, busy 9, power 7. Check the actual controller revision before troubleshooting the driver.</p>
-        <h2>5. Exercise: slideshow · 25 minutes</h2><p>Run device/examples/03_slideshow.py. Use up (6), down (4), press (5), menu (2) and back (1). Follow the sample's controls. Modify one slide, test first/last wrapping, and avoid a fast display-refresh loop. Ctrl-C stops a running script through a serial terminal.</p>
-        <h2>6. Exercise: weather · 30 minutes</h2><p>Run device/examples/04_weather.py after providing SSID and PASSWORD string variables in wifi_config.py on the device. Use an approved 2.4 GHz WPA2-Personal or open network. Do not paste secrets into shared code. Follow the sample's time-sync and certificate instructions; never disable TLS verification to bypass a network error.</p>
-        <h2>7. Finish · 10 minutes</h2><p>Download your changes. Run executes in RAM; saving main.py makes a program run at every reset. Remove wifi_config.py before returning or sharing the board. Keep the USB recovery path available.</p>
+        <h2>1. Meet the hardware · 10 minutes</h2><p>Explore the board in the 3D introduction. Bring a 2.13-inch CrowPanel and a USB data cable.</p>
+        <h2>2. Host setup · 10 minutes</h2><p>Use desktop Chrome or Edge on HTTPS or localhost. Check the cable and serial port; install the correct USB driver only if needed. Leave factory firmware intact.</p>
+        <h2>3. Board check · 20 minutes</h2><p>Test the factory display before erasing anything. If blank, stop and ask for help. Back up first. With explicit consent, install ESP32-S3 OCTSPIRAM MicroPython; skip flashing if already installed. Run the five-input check, then confirm you see the party screen.</p>
+        <h2>4. Snake · 30 minutes</h2><p>Fill the input-handler TODOs in 02_snake.py. Press starts or replays after game over; Snake moves automatically. Up ↺ counterclockwise -1 (12→9→6→3), Down ↻ clockwise +1 (12→3→6→9), Menu resets to ready and Back exits. Menu → Press also plays again. A wall or body collision can end a game; there is no 20-second cutoff. After the five-minute session ends, click Run in RAM again. A full solution is available. Square 8×8 grid with 10px cells (80px inside, ~82px with border) left on the 250×122 screen; score, status and instructions right. Food is chosen center-first, initially one cell ahead when adjacent to center. Default STEP_MS=5000 is 5 seconds of stable viewing time after each completed refresh; physical full refresh can be slower and takes additional time. One step per completed frame (one cell), no catch-up bursts. Allow one 90-degree steering turn per movement frame; extra turns queue for following frames. No smooth, fast or partial refresh promised. For optional show(on_wait=...) input collection during blocking waits, reinstall the latest workshop libraries via Board check → advanced install, not reflash.</p>
+        <h2>5. Station MAC · 5 minutes</h2><p>Run 01_mac.py. Record this board’s Wi-Fi MAC; joining a network is not required.</p>
+        <h2>6. Slideshow · 15 minutes</h2><p>Run 03_slideshow.py. Use Up and Down to cycle images, then stop the program.</p>
+        <h2>7. Weather · 20 minutes</h2><p>Register your station MAC with IT for the open Guest-AccessNG network. Edit WIFI_SSID and WIFI_PASSWORD in 04_weather.py if needed. Keep time synchronization and TLS verification enabled.</p>
+        <h2>8. Next projects &amp; cleanup · 10 minutes</h2><p>Try notifications, a calendar viewer or a battery-powered desk display. Download drafts before closing. Remove private credentials before sharing, then stop and disconnect.</p>
       </section>
     </noscript>
     <script type="module" src="./app.js"></script>

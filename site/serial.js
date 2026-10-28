@@ -1,3 +1,5 @@
+import { CROWPANEL_USB_FILTER, requireCrowPanelPort } from "./usb-devices.js";
+
 const encoder = new TextEncoder();
 const NEGOTIATION_MS = 3000;
 const RAW_PROMPT = "raw REPL; CTRL-B to exit\r\n>";
@@ -56,10 +58,11 @@ export class MicroPythonConnection {
     this._connecting = attempt;
     let session;
     try {
-      const selected = serial.requestPort();
+      const selected = serial.requestPort({ filters: [CROWPANEL_USB_FILTER] });
       this._state("connecting");
       const port = await selected;
       if (attempt.cancelled) throw new Error("Connection cancelled.");
+      requireCrowPanelPort(port);
       session = {
         port, serial, reader: null, writer: null, pump: null, buffer: "", wake: null,
         error: null, closing: null, writes: Promise.resolve(), listening: false, opened: false,

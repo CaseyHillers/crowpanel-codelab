@@ -1,5 +1,6 @@
 import { ESPLoader, Transport } from "esptool-js";
 import { FIRMWARE } from "./firmware.js";
+import { CROWPANEL_USB_FILTER, requireCrowPanelPort } from "./usb-devices.js";
 
 let flashing = false;
 
@@ -9,8 +10,9 @@ export async function flashMicroPython({ onProgress = () => {}, onLog = () => {}
   flashing = true;
   let transport;
   try {
-    const selection = navigator.serial.requestPort();
+    const selection = navigator.serial.requestPort({ filters: [CROWPANEL_USB_FILTER] });
     const port = await selection;
+    requireCrowPanelPort(port);
     transport = new Transport(port, false);
     if (firmware === null) {
       onLog(`Loading pinned MicroPython ${FIRMWARE.version} from this site.\n`);

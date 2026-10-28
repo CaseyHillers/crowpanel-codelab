@@ -2,9 +2,10 @@ import errno
 import importlib.util
 import json
 from pathlib import Path
+import runpy
 import types
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -322,6 +323,47 @@ class WeatherTests(unittest.TestCase):
         self.stream.close.side_effect = OSError("already closed")
         self.assertEqual(self.weather.fetch_weather(), self.current())
         self.assert_closed()
+
+
+class WeatherExampleTests(unittest.TestCase):
+    def setUp(self):
+        self.operations = Mock()
+        self.operations.fetch_weather.return_value = {
+            "time": "2026-10-27T12:00", "temperature_2m": 72.5,
+            "relative_humidity_2m": 44, "apparent_temperature": 71.2,
+            "wind_speed_10m": 4.3,
+        }
+
+    def run_sample(self):
+        with patch.dict("sys.modules", {
+            "weather": self.operations,
+            "crowpanel": types.SimpleNamespace(CrowPanel=self.operations.CrowPanel),
+            "wifi_config": None,
+        }), patch("builtins.print") as output:
+            runpy.run_path(str(ROOT / "device/examples/04_weather.py"))
+        return output
+
+    def test_open_workshop_default_syncs_before_fetch_without_wifi_config(self):
+        output = self.run_sample()
+        self.assertEqual(self.operations.mock_calls[:4], [
+            call.connect("Guest-AccessNG", "", timeout=15),
+            call.sync_time(), call.fetch_weather(),
+            call.CrowPanel(controller="jd79661"),
+        ])
+        self.operations.CrowPanel.return_value.show.assert_called_once_with()
+        self.assertNotIn("Guest-AccessNG", str(output.call_args_list))
+
+    def test_connection_or_clock_failure_prevents_fetch_and_display(self):
+        for operation in ("connect", "sync_time"):
+            with self.subTest(operation=operation):
+                self.setUp()
+                getattr(self.operations, operation).side_effect = OSError("unavailable")
+                with self.assertRaises(OSError):
+                    self.run_sample()
+                if operation == "connect":
+                    self.operations.sync_time.assert_not_called()
+                self.operations.fetch_weather.assert_not_called()
+                self.operations.CrowPanel.assert_not_called()
 
 
 if __name__ == "__main__":

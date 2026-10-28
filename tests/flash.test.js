@@ -5,11 +5,18 @@ import { ESPLoader, Transport } from "esptool-js";
 import { flashMicroPython } from "../site/flash.js";
 
 function setup(context, chip = "ESP32-S3") {
-  const state = { selections: 0, boots: 0, writes: [], resets: [], closes: 0 };
-  const port = { getInfo: () => ({ usbVendorId: 0x1a86, usbProductId: 0x7522 }) };
+  const state = { selections: 0, opens: 0, boots: 0, writes: [], resets: [], closes: 0 };
+  const port = {
+    getInfo: () => ({ usbVendorId: 0x1a86, usbProductId: 0x7522 }),
+    open: async () => { state.opens++; },
+  };
   const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, "navigator");
   Object.defineProperty(globalThis, "navigator", { configurable: true, value: {
-    serial: { requestPort() { state.selections++; return Promise.resolve(port); } },
+    serial: { requestPort(options) {
+      state.selections++;
+      state.requestOptions = options;
+      return Promise.resolve(port);
+    } },
   } });
   context.after(() => {
     if (navigatorDescriptor) Object.defineProperty(globalThis, "navigator", navigatorDescriptor);
@@ -36,6 +43,9 @@ test("flasher selects synchronously, writes a combined image at zero, resets and
   const progress = [];
   const pending = flashMicroPython({ firmware, onProgress: (percent) => progress.push(percent) });
   assert.equal(state.selections, 1);
+  assert.deepEqual(state.requestOptions, {
+    filters: [{ usbVendorId: 0x1a86, usbProductId: 0x7522 }],
+  });
   assert.deepEqual(await pending, { success: true });
   assert.equal(state.writes[0].fileArray[0].data, firmware);
   assert.equal(state.writes[0].fileArray[0].address, 0);
@@ -45,6 +55,38 @@ test("flasher selects synchronously, writes a combined image at zero, resets and
   assert.deepEqual(progress, [50, 100]);
   assert.equal(state.closes, 1);
 });
+
+for (const [label, info] of [
+  ["another vendor", { usbVendorId: 0x10c4, usbProductId: 0x7522 }],
+  ["another product", { usbVendorId: 0x1a86, usbProductId: 0x7523 }],
+  ["a missing product", { usbVendorId: 0x1a86 }],
+  ["a non-USB port", {}],
+  ["missing identity metadata", null],
+  ["an unavailable getInfo API", undefined],
+]) {
+  test(`flasher rejects ${label} before loading firmware or opening and permits retry`, async (context) => {
+    const { state, port, firmware } = setup(context);
+    port.getInfo = info === undefined ? undefined : () => info;
+    const fetchMock = context.mock.method(globalThis, "fetch", async () => {
+      assert.fail("Unsupported ports must not load firmware.");
+    });
+    const progress = [];
+    const logs = [];
+    await assert.rejects(flashMicroPython({
+      onProgress: (percent) => progress.push(percent), onLog: (text) => logs.push(text),
+    }), /CrowPanel.*1a86:7522.*USB/i);
+    assert.equal(fetchMock.mock.callCount(), 0);
+    assert.equal(state.opens, 0);
+    assert.equal(state.boots, 0);
+    assert.equal(state.writes.length, 0);
+    assert.equal(state.closes, 0);
+    assert.deepEqual(state.resets, []);
+    assert.deepEqual(progress, []);
+    assert.deepEqual(logs, []);
+    port.getInfo = () => ({ usbVendorId: 0x1a86, usbProductId: 0x7522 });
+    assert.deepEqual(await flashMicroPython({ firmware }), { success: true });
+  });
+}
 
 test("a detected non-S3 chip never reaches erase/write", async (context) => {
   const { state, firmware } = setup(context, "ESP32-C3");

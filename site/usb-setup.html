@@ -1,0 +1,95 @@
+<h2>Computer → USB-C → CrowPanel</h2>
+<ol class="task-steps">
+  <li>Open desktop <strong>Chrome or Edge</strong> over HTTPS or localhost.</li>
+  <li>Plug in a USB-C <strong>data cable</strong>. Close other serial apps.</li>
+  <li>Try the check below. Board missing? Open your OS guide.</li>
+</ol>
+<p class="lesson-note">Do not erase or flash yet. Keep the factory demo. No local Python tools needed.</p>
+<section class="usb-check" aria-labelledby="usb-check-title">
+  <h2 id="usb-check-title">Can this browser see your board?</h2>
+  <p>Select the CrowPanel’s USB serial port. This check doesn’t open the port, run code, or change the board.</p>
+  <button id="usb-check-button" type="button">Check USB connection</button>
+  <p id="usb-check-status" class="help" role="status">○ Not checked. Select the board to unlock Next.</p>
+  <p class="help">This USB-to-serial board uses Web Serial, not WebUSB. If it isn’t listed, follow your OS guide below.</p>
+</section>
+
+<div class="usb-guides" aria-label="USB setup by operating system">
+  <details data-os="macos">
+    <summary>macOS <span>Find the port · enable the WCH extension if needed</span></summary>
+    <p>Open Terminal. Compare the ports with the board unplugged, then plugged in:</p>
+    <pre><code>ls /dev/cu.*</code></pre>
+    <p>Look for a new <code>/dev/cu.usbserial-…</code> or <code>/dev/cu.wchusbserial…</code> port. Bluetooth and debug-console ports aren’t the board.</p>
+    <p><strong>No new port?</strong> Open System Information → USB. Our workshop board appears as <strong>USB Serial</strong>, vendor <code>0x1A86</code>, product <code>0x7522</code>. If it isn’t listed, try another data cable or USB port first.</p>
+    <ol>
+      <li>Download the official <a href="https://www.wch-ic.com/downloads/CH34XSER_MAC_ZIP.html" target="_blank" rel="noopener noreferrer">WCH macOS driver</a>. Confirm its current release supports your macOS version and USB product ID.</li>
+      <li>Follow the installer. If prompted, copy the app to Applications, open it, then select <strong>Install</strong>.</li>
+      <li>Open <strong>System Settings → General → Login Items &amp; Extensions → Driver Extensions ⓘ</strong> (called <strong>Drivers</strong> on some versions). Enable <strong>CH34xVCPDriver</strong> (WCH), approve prompts, and restart if requested.
+        <div class="macos-screenshots">
+          <figure><img src="./guides/macos/driver-extensions-location.png" alt="macOS Driver Extensions row showing cn.wch.CH34xVCPDriver and its information button" loading="lazy" width="458" height="62"><figcaption>Choose By Category, then the information button beside Driver Extensions.</figcaption></figure>
+          <figure><img src="./guides/macos/wch-driver-enabled.png" alt="Driver Extensions dialog with CH34xVCPDriver enabled" loading="lazy" width="457" height="449"><figcaption>Enable CH34xVCPDriver if permitted. This screenshot shows it already on.</figcaption></figure>
+        </div>
+      </li>
+      <li>Unplug and reconnect the board. Run <code>ls /dev/cu.*</code> again.</li>
+    </ol>
+    <details><summary>Installed, but still no port?</summary>
+    <p>The driver may be waiting for approval. Check:</p>
+    <pre><code>systemextensionsctl list</code></pre>
+    <p>For <code>cn.wch.CH34xVCPDriver</code>, <code>[activated waiting for user]</code> means approval is pending; <code>[activated enabled]</code> means the extension is enabled. Then verify the serial port separately.</p>
+    <p>If macOS asks to allow the USB accessory, approve it if your organization permits. If extension approval is managed or blocked, contact IT; don’t weaken security settings.</p>
+    </details>
+    <p><a href="https://support.apple.com/guide/mac-help/change-login-items-extensions-settings-mtusr003/mac" target="_blank" rel="noopener noreferrer">Apple: Login Items &amp; Extensions</a></p>
+  </details>
+
+  <details data-os="windows">
+    <summary>Windows <span>Find the COM port in Device Manager</span></summary>
+    <ol>
+      <li>Open <strong>Device Manager → Ports (COM &amp; LPT)</strong>. Reconnect the board and look for a new USB serial entry, such as <code>COM5</code>.</li>
+      <li>If no port appears, inspect <strong>Other devices</strong> and USB entries. Open the device’s <strong>Properties → Details → Hardware Ids</strong>. Our workshop interface is <code>USB\VID_1A86&amp;PID_7522</code>.</li>
+      <li>Try <strong>Update driver → Search automatically for drivers</strong>. If no matching driver is found, use a signed driver from WCH whose supported hardware IDs include your device; follow the full guide below. Don’t select a driver just because its name looks similar.</li>
+      <li>Reconnect and confirm a new COM port appears without a warning icon. Select that port in the workshop’s chooser.</li>
+    </ol>
+    <p>No USB entry at all? Try another data cable and USB port. Admin approval or an organization-approved driver package may be needed. Don’t disable driver-signature enforcement.</p>
+    <p><a href="https://www.wch-ic.com/downloads/CH341SER_ZIP.html" target="_blank" rel="noopener noreferrer">WCH official Windows CH340/CH341 driver</a> · Confirm its hardware-ID support before installing.</p>
+  </details>
+
+  <details data-os="linux">
+    <summary>Linux <span>Check USB detection, the serial node, and permissions</span></summary>
+    <p>In a terminal, compare USB devices before and after reconnecting:</p>
+    <pre><code>lsusb</code></pre>
+    <p>Our workshop interface reports <code>1a86:7522</code>. Check for a new serial node:</p>
+    <pre><code>ls /dev/ttyUSB* /dev/ttyACM* 2&gt;/dev/null</code></pre>
+    <p>Linux’s upstream <code>ch341</code> driver includes <code>1a86:7522</code>; expect a node such as <code>/dev/ttyUSB0</code> when it binds. Your distribution’s kernel and configuration still matter. If USB appears but no serial node does, use your distribution’s supported driver/kernel path; don’t build or install a vendor module preemptively.</p>
+    <p><strong>Port exists but access is denied?</strong> Inspect its owner/group and your groups, replacing the example node with yours:</p>
+    <pre><code>ls -l /dev/ttyUSB0
+id -nG</code></pre>
+    <p>Your distribution may use <code>dialout</code> or <code>uucp</code>. Ask your administrator to grant the appropriate serial access; sign out and back in if group membership changes. Don’t use <code>chmod 666</code> or run the browser as root.</p>
+    <p>Use a desktop Chrome/Edge build with Web Serial support. Browser sandbox/package permissions can also block serial access; follow your distribution’s supported setup rather than disabling its sandbox.</p>
+    <p><a href="https://github.com/torvalds/linux/blob/v6.12/drivers/usb/serial/ch341.c" target="_blank" rel="noopener noreferrer">Linux driver source · supported USB IDs</a></p>
+  </details>
+</div>
+
+<div class="expected-result">A new serial port appears. The factory firmware is unchanged. Continue to verify the device.</div>
+<p class="lesson-note">Both workshop USB choosers filter to <code>1a86:7522</code>. A different USB revision needs explicit workshop support, not a random replacement driver. These IDs don’t identify the display controller or authenticate the board.</p>
+<p><a id="usb-guide-download" download="crowpanel-usb-setup.md">Download the full USB setup guide · Markdown</a></p>
+
+<details class="usb-codex-help">
+  <summary>Want Codex to help? <span>Copy a setup prompt</span></summary>
+  <p>Paste this into a Codex session on the computer connected to your board. Review the suggested changes before approving them.</p>
+  <div class="usb-copy-actions"><button id="copy-usb-prompt" type="button">Copy Codex prompt</button><span id="usb-copy-status" role="status"></span></div>
+  <label class="sr-only" for="usb-codex-prompt">CrowPanel USB setup prompt for Codex</label>
+  <textarea id="usb-codex-prompt" readonly spellcheck="false" rows="14">Help me set up USB serial access for an Elecrow CrowPanel 2.13-inch ESP32-S3 e-paper board for a browser-based MicroPython workshop.
+
+First identify my OS/version and compare USB/serial devices before and after I reconnect the board. Start with read-only diagnostics. Ask me to unplug/reconnect if needed. Distinguish USB hardware detection, a serial port appearing, port permissions, and browser access; don’t claim one proves the others.
+
+The tested workshop USB interface is WCH “USB Serial”, VID 0x1A86, PID 0x7522. Confirm my actual device IDs; these IDs don’t prove the exact bridge model, display controller, or board authenticity. Stop and explain if they differ, since the workshop choosers filter to that pair.
+
+On macOS, check /dev/cu.* and USB device information. If a matching driver is needed, use WCH’s official CH34XSER_MAC_ZIP download and verify current OS/product-ID support. Check systemextensionsctl list: cn.wch.CH34xVCPDriver may be installed but “activated waiting for user”. Guide me to System Settings → General → Login Items &amp; Extensions → Driver Extensions to approve it; the tested Team ID is 5JZGQTGU4W. Settings may vary by OS version. Ask me to perform UI approvals myself.
+
+On Windows, check Device Manager, Hardware Ids, and a new COM port. Use Windows Update or an official signed WCH driver that matches my hardware IDs. On Linux, check lsusb, ttyUSB/ttyACM nodes, their group permissions, and the installed kernel’s support before suggesting any additional driver.
+
+Use official Apple, Microsoft, WCH, browser, or distribution documentation. Ask for approval before any download/install, administrator command, group or system-setting change, reset, serial-port opening, or firmware operation. Respect corporate IT policies. Never disable driver signatures, OS security, TLS verification, or browser sandboxing; never use world-writable serial permissions or run the browser as root.
+
+Do not erase or flash firmware, enter BOOT mode, run code on the board, or change board files. Preserve the factory demo for the next workshop step. Don’t install Python, esptool, mpremote, or a compiler just for this browser workshop.
+
+Stop when the OS exposes an accessible serial port. Summarize evidence and any remaining uncertainty. Then have me return to desktop Chrome/Edge on the workshop HTTPS/localhost page and verify the board before considering firmware installation.</textarea>
+</details>

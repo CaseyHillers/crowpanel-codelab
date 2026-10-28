@@ -55,24 +55,52 @@ def demo_slides():
 
     circuit = Image.new("1", (SLIDE_WIDTH, SLIDE_HEIGHT), 255)
     drawing = ImageDraw.Draw(circuit)
-    drawing.rectangle((95, 24, 155, 76), outline=0, width=3)
-    drawing.rectangle((104, 33, 146, 67), fill=0)
-    for offset in range(5):
-        vertical = 30 + offset * 10
-        endpoint = 18 + offset * 9
-        drawing.line([(95, vertical), (70, vertical),
-                      (60, 12 + offset * 17), (endpoint, 12 + offset * 17)],
-                     fill=0, width=2)
-        drawing.ellipse((endpoint - 3, 9 + offset * 17,
-                         endpoint + 3, 15 + offset * 17), outline=0)
-        drawing.line([(155, vertical), (180, vertical),
-                      (190, 12 + offset * 17), (250 - endpoint, 12 + offset * 17)],
-                     fill=0, width=2)
-        drawing.ellipse((247 - endpoint, 9 + offset * 17,
-                         253 - endpoint, 15 + offset * 17), outline=0)
-    for horizontal in range(105, 146, 10):
-        drawing.line([(horizontal, 15), (horizontal, 24)], fill=0, width=2)
-        drawing.line([(horizontal, 76), (horizontal, 85)], fill=0, width=2)
+    drawing.rounded_rectangle((8, 5, 241, 94), radius=7, outline=0, width=2)
+    for horizontal, vertical in [(17, 14), (232, 14), (17, 85), (232, 85)]:
+        drawing.ellipse((horizontal - 3, vertical - 3,
+                         horizontal + 3, vertical + 3), outline=0)
+
+    traces = [
+        [(36, 43), (49, 43), (61, 31), (94, 31)],
+        [(36, 55), (55, 55), (63, 47), (94, 47)],
+        [(64, 22), (80, 22), (80, 39), (94, 39)],
+        [(65, 75), (79, 75), (79, 63), (94, 63)],
+        [(110, 27), (110, 15), (163, 15), (173, 25), (180, 25)],
+        [(151, 39), (168, 39), (177, 48), (215, 48)],
+        [(151, 47), (162, 47), (171, 56), (215, 56)],
+        [(151, 63), (175, 63), (175, 72)],
+        [(126, 73), (126, 85), (197, 85), (205, 77), (205, 64), (215, 64)],
+    ]
+    for trace in traces:
+        drawing.line(trace, fill=0, width=2)
+
+    for vertical in range(31, 72, 8):
+        drawing.rectangle((88, vertical - 1, 157, vertical + 1), fill=0)
+    for horizontal in range(102, 144, 8):
+        drawing.rectangle((horizontal - 1, 21, horizontal + 1, 79), fill=0)
+    drawing.rectangle((94, 27, 151, 73), fill=0)
+    drawing.rectangle((101, 34, 144, 66), outline=255)
+    drawing.ellipse((104, 37, 108, 41), fill=255)
+
+    drawing.rectangle((9, 34, 36, 64), fill=255, outline=0, width=2)
+    drawing.rectangle((9, 40, 28, 58), fill=0)
+    drawing.line([(32, 39), (32, 59)], fill=0)
+    drawing.rectangle((215, 26, 231, 74), fill=255, outline=0, width=2)
+    for vertical in range(32, 70, 8):
+        for horizontal in (220, 226):
+            drawing.rectangle((horizontal - 1, vertical - 1,
+                               horizontal + 1, vertical + 1), fill=0)
+
+    drawing.rounded_rectangle((51, 68, 70, 81), radius=3,
+                             fill=255, outline=0, width=2)
+    drawing.line([(56, 72), (65, 72)], fill=0)
+    for horizontal, vertical in [(54, 17), (174, 20), (169, 72), (186, 72)]:
+        drawing.rectangle((horizontal, vertical, horizontal + 12, vertical + 8),
+                          fill=0)
+        drawing.rectangle((horizontal + 3, vertical + 2,
+                           horizontal + 9, vertical + 6), fill=255)
+    drawing.ellipse((194, 19, 206, 31), fill=0)
+    drawing.ellipse((198, 22, 202, 26), fill=255)
 
     summit = Image.new("1", (SLIDE_WIDTH, SLIDE_HEIGHT), 255)
     drawing = ImageDraw.Draw(summit)
