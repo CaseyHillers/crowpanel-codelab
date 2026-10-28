@@ -87,7 +87,11 @@ distribute them: **the included STLs are free to download and share**. Preserve
 upstream provenance and attributions; this permission does not waive attribution,
 relicense the models as MIT, or cover third-party Elecrow reference geometry.
 The original viewer application code's licensing remains separate from this STL
-distribution permission; no separate explicit license grant accompanies that code.
+distribution permission. On October 28, 2026, Casey Hillers explicitly confirmed
+having permission to publish both the original viewer application code and the
+Elecrow-derived CAD mesh publicly with this codelab. This records the publisher's
+confirmation, not an independent verification or a new license grant; preserve
+the original provenance and notices.
 
 ### Hardware: Elecrow reference geometry
 
@@ -95,10 +99,10 @@ The viewer's hardware mesh is derived from Elecrow's official
 `3D file/00-2-13_view_asm.stp`, used for fit/reference inspection. This is third-party
 CAD-derived geometry, not a new MIT model. The source package supplies attribution
 and a URL, **not an explicit hardware-geometry redistribution license**. Upstream
-licensing was not independently verified. Public availability is not itself a
-redistribution grant; preserving notices alone does not resolve that uncertainty.
-Confirm permission before external publication; if it cannot be established,
-remove the hardware payload (not just its visibility toggle) from published assets.
+licensing was not independently verified. Publication proceeds on Casey Hillers's
+explicit permission confirmation above, not an inference from public availability.
+This does not relicense the geometry as MIT or establish rights beyond that
+confirmed public distribution with the codelab.
 
 Official source: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/master/3D%20file/00-2-13_view_asm.stp
 
