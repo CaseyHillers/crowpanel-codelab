@@ -69,7 +69,7 @@ this repository. The initial lockfile was downloaded using registry.npmmirror.co
 | First program · Snake | 30 | Complete the automatic Snake control TODOs, with a full solution available |
 | Station MAC | 5 | Read the real Wi-Fi station MAC without joining a network |
 | Slideshow | 15 | Cycle three original images with up/down buttons |
-| Sabre Springs weather | 20 | Join Wi-Fi, sync time, retrieve verified HTTPS data |
+| ARM stock price | 20 | Join Wi-Fi, set UTC over USB, display a delayed ARM quote with its UTC minute |
 | Finish | 10 | Explore future projects, download work, remove private credentials and disconnect |
 
 The welcome page keeps the 3D parallax hardware story. Host preparation comes
@@ -79,7 +79,7 @@ ask for help when a fresh board is blank instead of destroying the baseline.
 
 The single **Board check** (`#verify`) combines setup and the five-control check.
 With explicit flash consent, the pinned official firmware installer
-runs in-browser if needed. The check copies the four libraries plus
+runs in-browser if needed. The check copies the six workshop files plus
 `00_board_check.py` and runs in RAM without creating `main.py`. Input polling is
 bounded to 60 seconds; display refreshes stay outside the polling loop.
 Browser emoji indicators observe complete debounced press/release cycles, one
@@ -115,7 +115,7 @@ Snake also runs with older installed drivers using plain `show()`, with a
 console warning: inputs cannot be collected during refresh until the libraries
 are updated. Hold a control until the refresh ends on those drivers.
 Library installation and Board check restart the MicroPython VM before copying
-files, then refresh the three workshop imports. Raw-REPL restart skips
+files, then refresh the `crowpanel`, `weather`, `slides` and `stocks` imports. Raw-REPL restart skips
 `main.py`; MicroPython still runs an existing `boot.py`. Failed restart or import
 reload is not installation success.
 Hello and the independent input diagnostic are not timed course routes; the
@@ -136,7 +136,7 @@ illustration are guides, not live hardware output.
 
 Each code lesson also has **Make something new with Codex** below the editor.
 Learners describe an idea and copy a prompt containing the verified hardware API,
-pin map, e-paper refresh constraints and safe weather/slide examples. The prompt
+pin map, e-paper refresh constraints and safe stock/slide examples. The prompt
 does not automatically include editor drafts, Wi-Fi credentials or device IDs;
 no AI API or build service is called. Learners review generated Python before
 pasting and running it. Generated code is not guaranteed safe or correct.
@@ -178,7 +178,7 @@ For recovery after a failed installation or a running lesson, connect the board
 and choose **Device → Reset device…**. After explicit confirmation, it stops the
 current program, restarts MicroPython, deletes all writable device files and
 folders (including `boot.py`, `main.py` and saved credentials), restarts the VM
-again, and reinstalls the four workshop files plus `00_board_check.py`. It checks
+again, and reinstalls the six workshop files plus `00_board_check.py`. It checks
 library imports but does not run the display or confirm physical controls.
 Run **Board check** next. Editor drafts stay in tab memory. MicroPython firmware
 stays installed; this is separate from factory-demo restoration. Deletion is not
@@ -301,17 +301,29 @@ For terminal use: `.venv/bin/mpremote connect /dev/cu.wchusbserial21410 run devi
 
 ### Installed files
 
+Board check and Advanced install copy these six runtime/data files. Board check
+also copies `00_board_check.py` before running it in RAM.
+
 - `device/crowpanel.py`: SSD1680/JD79661 full-refresh presets, 250 × 122 landscape.
 - `device/slides.py`: original Crow, Circuit, and Summit bitmaps.
-- `device/weather.py`: bounded Wi-Fi/HTTPS operations and optional NTP helper; fails closed on TLS
-  errors, unsupported TLS configuration, stale clock, or malformed responses.
+- `device/weather.py`: shared bounded Wi-Fi and certificate-verified `fetch_json`
+  operations, plus standalone weather and optional NTP helpers; fails closed on
+  TLS errors, unsupported TLS configuration, stale clock, or malformed responses.
 - `device/weather_ca.pem`: ISRG Root X2 trust anchor. The Open-Meteo chain was
   verified against this root on October 27, 2026. Renew the trust material if the
   provider changes chains; never work around it by disabling verification.
+- `device/stocks.py`: one verified HTTPS request for the last available
+  NASDAQ:ARM one-minute quote from TradingView, with strict quote validation.
+- `device/stocks_ca.pem`: Amazon Root CA 1 from
+  https://www.amazontrust.com/repository/AmazonRootCA1.pem. SHA-256 fingerprint:
+  `8ECDE6884F3D87B1125BA31AC3FCB13D7016DE7F57CC904FE1CB97C6AE98196E`.
+  The `scanner.tradingview.com` chain verified against this root on October 30,
+  2026. Renew trust material if the provider changes chains; keep verification enabled.
 - `device/examples/`: the Board check, Snake TODO scaffold and full solution,
-  station MAC, slideshow and weather scripts, plus standalone diagnostics and Hello.
+  station MAC, slideshow and ARM stock scripts, plus standalone weather,
+  diagnostics and Hello.
 
-Weather uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
+The ARM stock lesson uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""`; the empty password means an open network. The exercise
 does not read `wifi_config.py`; there is no separate app Wi-Fi form.
 Learners may enter private credentials for another approved network, but those
@@ -324,17 +336,46 @@ access permits reading device files; this is not a secrets vault. Saving
 
 Wi-Fi examples use 2.4 GHz Personal/open networks. Enterprise 802.1X and captive
 portal login are not implemented. Registering a MAC alone does not guarantee
-corporate-network compatibility. The Weather lesson's **Run in RAM** sets the
+corporate-network compatibility. The Stocks lesson's **Run in RAM** sets the
 board's UTC RTC from the computer over USB before executing the editor source.
 The sample does not use NTP, so guest networks may block it. Keep the computer's
 clock correct; HTTPS certificate and stale-clock checks remain enabled. No
-firmware or library reinstall is needed for browser clock setting. Downloaded
-scripts and `main.py` need an accurate RTC set separately, again after loss of
+firmware reinstall is needed. Existing learners must install the latest stock
+libraries and certificate through **Board check → Advanced install**, not reflash.
+Downloaded scripts and `main.py` need an accurate RTC set separately, again after loss of
 power; `weather.sync_time()` remains optional on networks that allow NTP.
 The HTTPS endpoint must still be reachable. HTTPS socket operations are bounded;
 DNS resolution uses the firmware resolver's own timeout. Large/chunked responses
-are rejected rather than accepted unsafely. Weather data is for Sabre Springs,
-San Diego (32.9528, -117.094), with Fahrenheit, mph, and Los Angeles local time.
+are rejected rather than accepted unsafely.
+
+### ARM quote source and timestamp
+
+The Stocks lesson fetches once and refreshes the display once per run; it does
+not poll in the background. Its public, keyless website endpoint is:
+
+https://scanner.tradingview.com/symbol?symbol=NASDAQ%3AARM&fields=close%7C1%2Ctime%7C1%2Ccurrency%2Cupdate_mode%2Cdescription%2Cexchange&no_404=true
+
+The `close|1` price is paired with `time|1`, the last available one-minute bar's
+Unix UTC timestamp, rather than the request's retrieval time. The observed
+`delayed_streaming_900` mode means a 15-minute delay. The lesson does not promise
+real-time data; a quote can be from an earlier session when the market is closed.
+`format_quote_time` converts the provider's 1970 epoch for MicroPython ports
+using either the 1970 or 2000 epoch. Currency, instrument identity, price,
+timestamp and delay mode are validated before displaying a quote.
+
+Source provenance: [TradingView's public ARM page](https://www.tradingview.com/symbols/NASDAQ-ARM/)
+and the [open-source TradingView-Screener client](https://github.com/shner-elmo/TradingView-Screener).
+The website endpoint may rate-limit or change; it is not a guaranteed stable
+official API. The client's source-code license does not license TradingView's
+market data. Keep TradingView attribution and the quote's delay/time visible.
+On October 30, 2026, a host request using HTTP/1.0, `stocks_ca.pem` and
+`Accept-Encoding: identity` received a 160-byte JSON response with Content-Length.
+This does not verify the Wi-Fi request or physical display on a board.
+
+The old `#weather` course link redirects to `#stocks`. The independent
+`04_weather.py` example remains available outside the timed course; its data is
+for Sabre Springs, San Diego (32.9528, -117.094), with Fahrenheit, mph and Los
+Angeles local time.
 
 ## Hardware contract
 
@@ -383,14 +424,15 @@ python3 -m venv .venv
 
 JavaScript tests exercise raw-REPL framing, cancellation, concurrency, source/file
 transfer, and disconnects using fake streams. Python tests check image conversion,
-panel geometry/protocol behavior, and weather failure/security paths with mocks.
+panel geometry/protocol behavior, stock quote validation and shared HTTPS/weather
+failure/security paths with mocks.
 See `assets/README.md` for custom image conversion. Pillow is a host tool only.
 
 Before calling the workshop ready, test on the actual board: flash and reconnect,
 run the Board check, observe all five complete cycles and explicitly confirm the
 static party screen before browser confetti. Complete Snake's TODOs, try its full
 solution without losing work, print MAC, cycle every slide both ways, Stop the
-loop, fetch weather, and test denied permissions/disconnects. Verify autostart
+loop, fetch the ARM quote, and test denied permissions/disconnects. Verify autostart
 only with explicit consent, then remove private credentials from drafts,
 downloads and device files. Check driver/controller variants on every batch.
 
@@ -414,7 +456,7 @@ The original workshop code and documentation are licensed under the **MIT
 License**, copyright 2026 Casey Hillers. See `LICENSE`. The static build includes
 a copy at `dist/LICENSE.txt`.
 
-Third-party firmware, dependencies, certificates, and weather data retain their
+Third-party firmware, dependencies, certificates, stock quotes and weather data retain their
 own licenses and attribution requirements. In particular, the MIT project
 license does not replace the Apache-2.0 license of `esptool-js` or the bundled
 firmware's third-party notices.
@@ -433,6 +475,9 @@ firmware's third-party notices.
 - Installer: https://github.com/espressif/esptool-js
 - Weather: https://open-meteo.com/en/docs (Open-Meteo, CC BY 4.0 attribution)
 - Trust root: https://letsencrypt.org/certs/isrg-root-x2.pem
+- ARM quote source: https://www.tradingview.com/symbols/NASDAQ-ARM/
+- Public quote endpoint client/provenance: https://github.com/shner-elmo/TradingView-Screener
+- Stock endpoint trust root: https://www.amazontrust.com/repository/AmazonRootCA1.pem
 
 MicroPython's license accompanies the binary in `site/public/firmware/`.
 Its ports include third-party components with their own licenses, referenced in

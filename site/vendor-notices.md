@@ -36,14 +36,14 @@ The dealt IBM Plex faces are intentionally not downloaded or bundled: no local
 font assets were available, and reliable enterprise/offline operation is the
 primary purpose. System UI and system monospace are an explicit typography
 exception. The UI makes no external font, image or analytics requests. Firmware
-downloads and device-side weather requests are separate, explicit network
+downloads and device-side stock/standalone weather requests are separate, explicit network
 operations. No stock photography, icon packs or third-party font files are
 bundled. Local macOS setup screenshots supplied by Casey Hillers are included;
 their provenance is recorded in `guides/macos/README.md`.
 
 Course drafts live only in JavaScript memory for the
 current tab. There is no localStorage, IndexedDB or server-side draft storage.
-Weather defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
+Stock lesson defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""` for the open workshop network, not a separate config file.
 There is no separate app Wi-Fi form. Optional private credentials edited into
 the code are visible in the editor and included in downloads; never put them in
@@ -51,14 +51,41 @@ browser storage or logs. Remove them from drafts, downloads and any device files
 (including legacy `wifi_config.py` or explicitly saved `main.py`) before sharing.
 Device files are plaintext and USB-readable; deletion is not forensic erasure.
 
-The 120-minute course has one Board check, then 30-minute turn-based Snake with
-a TODO scaffold and full solution, station MAC, slideshow, weather and Finish.
+The 120-minute course has one Board check, then 30-minute automatic Snake with
+a TODO scaffold and full solution, station MAC, slideshow, ARM stocks and Finish.
 Hello and the standalone display-independent input diagnostic are not separate
 course routes. Browser emoji indicators observe input cycles; confetti requires
 five complete cycles, a successful display marker and explicit user confirmation
 of the physical party screen. The e-paper party drawing has one final static
 refresh, not animation. Finish's battery ideas require safe compatibility checks,
 not an assumption that any pack or bare cell is suitable.
+
+## ARM quote source and trust certificate
+
+The 20-minute Stocks lesson makes one verified HTTPS request to TradingView's
+public website endpoint and one display refresh per run, without background
+polling or an API key. It shows the last available NASDAQ:ARM one-minute quote
+in USD, its provider minute timestamp in UTC and the reported delay. The
+observed source uses a 15-minute delay; this is not a promise of real-time data.
+The website endpoint may rate-limit or change and is not a guaranteed stable
+official API. Source provenance:
+
+- https://www.tradingview.com/symbols/NASDAQ-ARM/
+- https://github.com/shner-elmo/TradingView-Screener
+- https://scanner.tradingview.com/symbol?symbol=NASDAQ%3AARM&fields=close%7C1%2Ctime%7C1%2Ccurrency%2Cupdate_mode%2Cdescription%2Cexchange&no_404=true
+
+The client's open-source code license does not license the market data. The
+workshop does not bundle the client, and the workshop's MIT license does not
+grant new rights over TradingView quotes.
+
+`stocks_ca.pem` is Amazon Root CA 1 from
+https://www.amazontrust.com/repository/AmazonRootCA1.pem, SHA-256 fingerprint
+`8ECDE6884F3D87B1125BA31AC3FCB13D7016DE7F57CC904FE1CB97C6AE98196E`.
+Host HTTPS verification succeeded against this root on October 30, 2026; this
+does not establish Wi-Fi or physical display operation on the learner's board.
+The Stocks lesson sets UTC from the computer over USB before Run in RAM, so it
+does not need NTP and retains HTTPS verification. Old `#weather` course links
+redirect to Stocks; the separate weather sample remains outside the course.
 
 ## Hardware introduction
 
