@@ -84,6 +84,7 @@
               <button id="flash-button" class="danger" type="button" data-hardware>Install MicroPython…</button>
               <label class="sr-only" for="flash-progress">Firmware writing progress</label><progress id="flash-progress" max="100" value="0" hidden></progress>
               <p id="flash-status" class="help" role="status">No firmware has been flashed in this session.</p>
+              <p class="help">After MicroPython installation finishes, unplug the ESP32’s USB cable and plug it back in. Choose Connect device, then Connect &amp; check board. Keep USB connected while firmware is being written.</p>
               <h2>2. Try every control</h2>
               <p>Copies the workshop files, then runs the check. No boot program is created.</p>
               <button id="starter-button" class="primary" type="button" data-hardware>Connect &amp; check board…</button>
@@ -110,8 +111,9 @@
           <section class="workspace" aria-label="Device workspace">
             <section class="connection" aria-labelledby="connection-title">
               <div class="section-heading"><h2 id="connection-title">Device</h2><span id="connection-state" role="status">Disconnected</span></div>
-              <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="stop-button" type="button" disabled>Stop</button><button id="disconnect-button" type="button" disabled>Disconnect</button></div>
+              <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="stop-button" type="button" disabled>Stop</button><button id="disconnect-button" type="button" disabled>Disconnect</button><button id="reset-device" class="danger" type="button" aria-describedby="reset-status" disabled>Reset device…</button></div>
               <p id="connection-help" class="help">USB serial · close other serial apps before connecting.</p>
+              <p id="reset-status" class="help" role="status">Reset device deletes all device files and reinstalls workshop files. Confirmation required.</p>
             </section>
             <section class="editor-panel" aria-labelledby="editor-title">
               <div class="section-heading"><h2 id="editor-title">Python editor</h2><span id="draft-state">Sample</span></div>

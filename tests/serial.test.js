@@ -36,8 +36,19 @@ class FakePort {
           this.mode = "raw";
           this.program = [];
           if (!options.noPrompt) this.emit("stale >>> \r\nraw REPL; CTRL-B to exit\r\n>", 1);
+          if (options.extraRawPrompt) {
+            this.emit("raw REPL; CTRL-B to exit\r\n>", 1);
+            await delay(0);
+          }
         } else if (text === "\x04") {
           assert.equal(this.mode, "raw");
+          if (!this.program.length) {
+            this.resetCount = (this.resetCount || 0) + 1;
+            if (options.delayedOldPrompt) this.emit("raw REPL; CTRL-B to exit\r\n>", 1);
+            if (options.onSoftReset) await options.onSoftReset(this);
+            else if (!options.noResetPrompt) this.emit("MPY: soft reboot\r\nraw REPL; CTRL-B to exit\r\n>", 1);
+            return;
+          }
           this.mode = "running";
           const source = new TextDecoder().decode(Buffer.concat(this.program));
           this.sources.push(source);
@@ -257,6 +268,64 @@ test("only one execution or file transfer can own the protocol", async (context)
   await connection.stop();
   await pending;
   assert.equal(port.sources.length, 1);
+});
+
+test("soft reset restarts the VM in raw REPL without executing source and leaves it reusable", async (context) => {
+  const { connection, port } = fixture(context);
+  await connection.connect();
+  await connection.softReset();
+  assert.equal(port.resetCount, 1);
+  assert.deepEqual(port.sources, []);
+  assert.deepEqual(port.writes.map((bytes) => new TextDecoder().decode(bytes)), ["\x03\x03\x01", "\x04", "\x02"]);
+  assert.equal(port.mode, "friendly");
+  assert.equal(connection.connected, true);
+  assert.equal(connection.running, false);
+  await connection.execute("print('ready')");
+  assert.deepEqual(port.sources, ["print('ready')"]);
+});
+
+test("soft reset requires a connected idle protocol and cannot interrupt another owner", async (context) => {
+  const { connection, port } = fixture(context, { onExecute: () => {} });
+  await assert.rejects(connection.softReset(), /Connect/i);
+  assert.equal(port.writes.length, 0);
+  await connection.connect();
+  const running = connection.execute("while True: pass");
+  await eventually(() => port.mode === "running");
+  const writesBefore = port.writes.length;
+  await assert.rejects(connection.softReset(), /busy/i);
+  assert.equal(port.writes.length, writesBefore);
+  await connection.stop();
+  await running;
+});
+
+test("soft reset owns the serial protocol until its new prompt arrives", async (context) => {
+  let releaseReset;
+  const { connection, port } = fixture(context, {
+    onSoftReset: () => new Promise((resolve) => { releaseReset = resolve; }),
+  });
+  await connection.connect();
+  const pending = connection.softReset();
+  await eventually(() => releaseReset);
+  await assert.rejects(connection.execute("print('race')"), /busy/i);
+  await assert.rejects(connection.writeFile("main.py", "pass"), /busy/i);
+  await assert.rejects(connection.softReset(), /busy/i);
+  port.emit("MPY: soft reboot\r\nraw REPL; CTRL-B to exit\r\n>", 1);
+  releaseReset();
+  await pending;
+  assert.equal(port.resetCount, 1);
+});
+
+test("buffered and delayed pre-reset prompts cannot count as a reboot and reset failure closes the port", async (context) => {
+  const { connection, port } = fixture(context, { extraRawPrompt: true, delayedOldPrompt: true, noResetPrompt: true });
+  await connection.connect();
+  await assert.rejects(connection.softReset(), /timed out/i);
+  assert.equal(port.resetCount, 1);
+  assert.deepEqual(port.sources, []);
+  assert.equal(connection.connected, false);
+  assert.equal(connection.running, false);
+  assert.equal(port.closeCount, 1);
+  assert.equal(port.readable.locked, false);
+  assert.equal(port.writable.locked, false);
 });
 
 test("Stop during raw negotiation recovers friendly REPL without another reader", async (context) => {

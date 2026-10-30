@@ -7,6 +7,8 @@ import { createCodeEditor } from "./code-editor.js";
 import { checkUsbDevice, detectHostOs } from "./usb-check.js";
 import { createProjectPrompt } from "./codex-prompts.js";
 import { createStarterInputs } from "./starter-inputs.js";
+import { resetDevice } from "./device-reset.js";
+import resetFilesSource from "../device/diagnostics/reset_files.py?raw";
 import starterSource from "../device/examples/00_board_check.py?raw";
 import snakeSolution from "../device/examples/02_snake_solution.py?raw";
 import panelSource from "../device/crowpanel.py?raw";
@@ -160,7 +162,10 @@ function updateControls() {
   byId("run-button").textContent = job?.kind === "run" ? "Run again…" : "Run in RAM";
   byId("connect-button").disabled = !serialAvailable || connection.connected || busy;
   byId("disconnect-button").disabled = !connection.connected || transitioning || job?.kind === "flash" || job?.kind === "connect";
+  byId("reset-device").disabled = !serialAvailable || !connection.connected || transitioning || stopping || checkingUsb || Boolean(job && job.kind !== "run");
+  if (job?.kind === "reset") byId("disconnect-button").disabled = true;
   byId("stop-button").disabled = stopping || !connection.connected || !connection.running;
+  if (job?.kind === "reset") byId("stop-button").disabled = true;
   byId("stop-button").textContent = stopping ? "Stopping…" : "Stop";
   byId("flash-button").disabled = !serialAvailable || !usbDetected || busy || connection.connected || firmwareLoading || firmwareSelectionError;
   byId("starter-button").disabled = !serialAvailable || (!usbDetected && !connection.connected) || busy;
@@ -463,6 +468,49 @@ byId("disconnect-button").addEventListener("click", async () => {
   }
 });
 
+byId("reset-device").addEventListener("click", async () => {
+  if (!requireDevice() || transitioning || stopping || checkingUsb || (job && job.kind !== "run")) return;
+  if (!window.confirm("Reset this MicroPython device? This stops the running program and permanently deletes ALL device files and folders, including main.py, boot.py and saved Wi-Fi credentials, then reinstalls the workshop files. Download device work you want to keep first. MicroPython firmware stays installed; this does not restore the factory demo. Editor drafts stay in this tab. Deletion is not a forensic secure erase.")) return;
+  byId("reset-status").textContent = "Stopping the running program before reset…";
+  transitioning = true;
+  updateControls();
+  try {
+    stopRequested = true;
+    await connection.stop();
+    await runTask;
+    if (!requireDevice()) {
+      byId("reset-status").textContent = "Reset not started. Press the physical RESET button, reconnect, then retry Reset device.";
+      return;
+    }
+    await perform("reset", "Resetting device…", async () => {
+      resetVerification();
+      byId("reset-status").textContent = "Reset in progress. Keep USB connected.";
+      byId("install-status").textContent = "Reset in progress; workshop files are not ready yet.";
+      try {
+        await resetDevice(connection, {
+          clearSource: resetFilesSource,
+          files: [...libraryFiles, { name: "00_board_check.py", data: starterSource }],
+          onPhase: phase => { byId("reset-status").textContent = phase; },
+        });
+      } catch (error) {
+        byId("reset-status").textContent = "Reset incomplete; some files may be missing. Reconnect if needed and retry. If MicroPython cannot respond, press the physical RESET button, reconnect, and retry; ask a facilitator if it still fails.";
+        byId("install-status").textContent = "Reset incomplete. Retry Reset device before running a lesson.";
+        throw error;
+      }
+      byId("install-status").textContent = "Workshop files reinstalled and imports checked. Run Board check to verify controls and the display.";
+      byId("reset-status").textContent = "Device files reset. Workshop files ready. Run Board check next.";
+      byId("starter-status").textContent = "Ready to check again. Press Connect & check board.";
+      setStatus("Reset complete. Run Board check to verify all five controls and the physical display.");
+    });
+  } catch (error) {
+    byId("reset-status").textContent = "Reset could not start. Reconnect and retry; ask a facilitator if the device does not respond.";
+    reportError(error);
+  } finally {
+    transitioning = false;
+    updateControls();
+  }
+});
+
 async function runEditor() {
   if (!requireDevice() || transitioning || stopping) return;
   const source = editor.value;
@@ -556,10 +604,11 @@ async function refreshWorkshopImports() {
 
 byId("install-button").addEventListener("click", () => {
   if (!requireDevice()) return;
-  if (!window.confirm("Write crowpanel.py, weather.py, slides.py and weather_ca.pem to the board, replacing files with those names? This enters the REPL and may interrupt an autostart program. No main.py will be created.")) return;
+  if (!window.confirm("Restart MicroPython and write crowpanel.py, weather.py, slides.py and weather_ca.pem to the board, replacing files with those names? This interrupts any autostart program. No main.py will be created.")) return;
   void perform("install", "Installing workshop libraries and weather trust certificate…", async () => {
     const installed = [];
     try {
+      await connection.softReset();
       for (const file of libraryFiles) {
         byId("install-status").textContent = `Writing ${file.name} (${installed.length + 1}/${libraryFiles.length})…`;
         await connection.writeFile(file.name, file.data);
@@ -572,18 +621,19 @@ byId("install-button").addEventListener("click", () => {
       throw error;
     }
     byId("install-status").textContent = `All ${libraryFiles.length} workshop files written and imports refreshed. Panel behavior still needs a physical check.`;
-    setStatus("Workshop libraries updated without rebooting. No boot script was created. Return to Snake when ready.");
+    setStatus("MicroPython restarted and workshop libraries updated. No boot script was created. Return to Snake when ready.");
   });
 });
 
 byId("starter-button").addEventListener("click", () => {
   if (!serialAvailable || job || checkingUsb || transitioning || (!usbDetected && !connection.connected)) return;
-  if (!window.confirm("Copy the four workshop files and 00_board_check.py to this board, replacing files with those names, then run a 60-second input demo? Back up existing files first. No main.py or autostart program will be created.")) return;
+  if (!window.confirm("Restart MicroPython, copy the four workshop files and 00_board_check.py to this board, replacing files with those names, then run a 60-second input demo? No main.py or autostart program will be created.")) return;
   stopRequested = false;
   resetVerification();
   runTask = perform("run", "Connecting and preparing the board check…", async () => {
     try {
       if (!connection.connected) await connection.connect();
+      await connection.softReset();
       const files = [...libraryFiles, { name: "00_board_check.py", data: starterSource }];
       for (const [index, file] of files.entries()) {
         byId("starter-status").textContent = `Copying file ${index + 1} of ${files.length}: ${file.name}…`;
@@ -602,7 +652,7 @@ byId("starter-button").addEventListener("click", () => {
       setStatus("Board check ended. No boot file was created.");
     } catch (error) {
       celebrationShown = false;
-      byId("starter-status").textContent = "⚠️ Check didn’t finish. See the console, reconnect and retry. Some files may have been copied.";
+      byId("starter-status").textContent = "⚠️ Check didn’t finish. See the console, reconnect and retry. Some files may have been copied. For a clean start, use Reset device in Device controls; it deletes device files and reinstalls the workshop files.";
       throw error;
     } finally {
       starterActive = false;
@@ -697,8 +747,9 @@ byId("flash-button").addEventListener("click", () => {
       });
       if (result !== true && result?.success !== true) throw new Error("The firmware installer did not explicitly confirm a successful write. Check its log and reconnect to verify the runtime before continuing.");
       byId("flash-progress").value = 100;
-      byId("flash-status").textContent = "✅ MicroPython written. Choose Connect & check board below. Display and inputs still need testing.";
-      setStatus("Firmware written. Next: check your board.");
+      byId("flash-status").textContent = "✅ MicroPython written. Unplug the ESP32’s USB cable, then plug it back in. After reconnecting power, choose Connect device, then Connect & check board below. Display and inputs still need testing.";
+      setStatus("Firmware written. Power cycle the board before Board check.");
+      window.alert("MicroPython installation is complete. Power cycle the device now: unplug the ESP32’s USB cable, then plug it back in. After it powers up, choose Connect device, then Connect & check board. Do not install MicroPython again just to reconnect.");
     } catch (error) {
       byId("flash-progress").hidden = true;
       byId("flash-status").textContent = "Flash not confirmed. If writing began, the board may need reflashing. Check the installer log before retrying.";

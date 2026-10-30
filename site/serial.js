@@ -296,6 +296,24 @@ export class MicroPythonConnection {
     return this._stopping;
   }
 
+  async softReset() {
+    return this._exclusive(async (session, operation) => {
+      session.buffer = "";
+      session.listening = true;
+      await this._write(session, "\x03\x03\x01", operation);
+      await this._readUntil(session, RAW_PROMPT, Date.now() + NEGOTIATION_MS, operation);
+      // Ctrl-D in an empty raw REPL resets the VM without starting main.py.
+      session.buffer = "";
+      await this._write(session, "\x04", operation);
+      const rebootDeadline = Date.now() + NEGOTIATION_MS;
+      await this._readUntil(session, "MPY: soft reboot\r\n", rebootDeadline, operation);
+      await this._readUntil(session, RAW_PROMPT, rebootDeadline, operation);
+      await this._write(session, "\x02", operation);
+      await this._readUntil(session, ">>> ", Date.now() + NEGOTIATION_MS, operation);
+      operation.synchronized = true;
+    });
+  }
+
   async writeFile(path, data) {
     const source = fileSource(path, data);
     return this._exclusive(async (session, operation) => {
