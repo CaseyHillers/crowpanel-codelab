@@ -231,7 +231,8 @@ def fetch_json(host, path, cafile, timeout=10):
 def _fetch_json(host, path, cafile, timeout, current_conditions):
     timeout_ms = _timeout_ms(timeout)
     if (not isinstance(host, str) or not host or len(host) > 253
-            or any(ord(char) > 127 or not (char.isalnum() or char in ".-") for char in host)
+            or any(not ("a" <= char <= "z" or "A" <= char <= "Z"
+                        or "0" <= char <= "9" or char in ".-") for char in host)
             or not isinstance(path, str) or not path.startswith("/")
             or any(ord(char) < 33 or ord(char) > 126 for char in path)):
         raise ValueError("invalid HTTPS host or path")
@@ -260,7 +261,7 @@ def _fetch_json(host, path, cafile, timeout, current_conditions):
             "GET " + path + " HTTP/1.0\r\nHost: " + host
             + "\r\nConnection: close\r\nAccept: application/json"
             + "\r\nAccept-Encoding: identity\r\n\r\n"
-        ).encode("ascii")
+        ).encode("utf-8")
         _write_all(stream, request, started, timeout_ms)
         return _read_response(stream, started, timeout_ms, current_conditions)
     finally:

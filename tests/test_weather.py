@@ -215,7 +215,10 @@ class WeatherTests(unittest.TestCase):
     def test_generic_json_accepts_fragmented_eof_delimited_object(self):
         self.response(body=b'{"quote":1}', status=b"HTTP/1.1 200 OK", length=False)
         self.fragment_size = 1
-        self.assertEqual(self.weather.fetch_json("quotes.example", "/arm", "quotes.pem"), {"quote": 1})
+        self.assertEqual(self.weather.fetch_json("Quotes-12.example", "/arm", "quotes.pem"), {"quote": 1})
+        self.socket.getaddrinfo.assert_called_once_with(
+            "Quotes-12.example", 443, self.socket.AF_INET, self.socket.SOCK_STREAM,
+        )
         self.assert_closed()
 
     def test_generic_json_rejects_request_injection_before_tls_or_dns(self):
@@ -223,6 +226,9 @@ class WeatherTests(unittest.TestCase):
             ("quotes.example\r\nInjected: yes", "/arm"),
             ("quotes.example:443", "/arm"),
             ("é.example", "/arm"),
+            ("quotes_12.example", "/arm"),
+            ("quotes\x7f.example", "/arm"),
+            ("².example", "/arm"),
             ("quotes.example", "/arm\r\nInjected: yes"),
             ("quotes.example", "/a b"),
             ("quotes.example", "https://quotes.example/arm"),
