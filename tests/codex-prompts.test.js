@@ -73,15 +73,17 @@ test('paste-ready output and RAM-only secret boundaries stay mandatory', () => {
   }
 });
 
-test('optional weather and slides use the actual repository interfaces', () => {
-  const prompt = createProjectPrompt('Build a weather and slideshow viewer');
+test('optional stocks and slides use the actual repository interfaces', () => {
+  const prompt = createProjectPrompt('Build a stock and slideshow viewer');
   for (const requirement of [
-    /only if requested.*weather/i,
+    /only if requested.*stocks/i,
     /from wifi_config import SSID, PASSWORD/,
-    /from weather import connect, fetch_weather/,
-    /connect\(SSID, PASSWORD\).*fetch_weather\(\)/,
-    /Sabre Springs.*Fahrenheit.*mph/,
-    /temperature_2m.*apparent_temperature.*relative_humidity_2m.*wind_speed_10m.*weather_code.*time/,
+    /from stocks import connect, fetch_quote, format_quote_time/,
+    /connect\(SSID, PASSWORD\).*fetch_quote\(\)/,
+    /NASDAQ:ARM USD.*TradingView/,
+    /symbol,price,currency,quote_time,delay_minutes,source/,
+    /UTC quote minute, not fetch time/,
+    /no polling or live-price promise/,
     /HTTPS.*certificate verification.*never disable/i,
     /from slides import SLIDES, WIDTH, HEIGHT, STRIDE/,
     /name, bitmap = SLIDES\[index\]/,

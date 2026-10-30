@@ -8,7 +8,7 @@ import { checkUsbDevice, detectHostOs } from "./usb-check.js";
 import { createProjectPrompt } from "./codex-prompts.js";
 import { createStarterInputs } from "./starter-inputs.js";
 import { resetDevice } from "./device-reset.js";
-import { withBrowserClock } from "./weather-clock.js";
+import { withBrowserClock } from "./run-clock.js";
 import resetFilesSource from "../device/diagnostics/reset_files.py?raw";
 import starterSource from "../device/examples/00_board_check.py?raw";
 import snakeSolution from "../device/examples/02_snake_solution.py?raw";
@@ -16,6 +16,8 @@ import panelSource from "../device/crowpanel.py?raw";
 import weatherSource from "../device/weather.py?raw";
 import slidesSource from "../device/slides.py?raw";
 import weatherCa from "../device/weather_ca.pem?raw";
+import stocksSource from "../device/stocks.py?raw";
+import stocksCa from "../device/stocks_ca.pem?raw";
 
 const byId = (id) => document.getElementById(id);
 const hardwareStory = createHardwareStory(byId("hardware-intro"), byId("story-viewer"), byId("story-status"));
@@ -27,6 +29,8 @@ const libraryFiles = [
   { name: "weather.py", data: weatherSource },
   { name: "slides.py", data: slidesSource },
   { name: "weather_ca.pem", data: weatherCa },
+  { name: "stocks.py", data: stocksSource },
+  { name: "stocks_ca.pem", data: stocksCa },
 ];
 const serialAvailable = Boolean(globalThis.isSecureContext && navigator.serial);
 let currentLesson;
@@ -216,7 +220,7 @@ function setNavOpen(open) {
 function renderLesson({ focus = false } = {}) {
   if (currentLesson) drafts.set(currentLesson.id, editor.value);
   const requestedId = location.hash.slice(1);
-  const id = ({ inputs: "verify", hello: "snake" })[requestedId] || requestedId;
+  const id = ({ inputs: "verify", hello: "snake", weather: "stocks" })[requestedId] || requestedId;
   const isAppendix = id === "appendix";
   const next = lessons.find((lesson) => lesson.id === id) || lessons[0];
   currentLesson = next;
@@ -516,7 +520,7 @@ async function runEditor() {
   if (!requireDevice() || transitioning || stopping) return;
   const source = editor.value;
   const filename = samples[currentLesson.sample].name;
-  const needsBrowserClock = currentLesson.id === "weather";
+  const needsBrowserClock = currentLesson.id === "stocks";
   if (!source.trim()) {
     reportError(new Error("The editor is empty. Add Python code or reset the sample before running."));
     return;
@@ -601,14 +605,14 @@ byId("save-main").addEventListener("click", () => {
 
 byId("install-button").textContent = `Install ${libraryFiles.length} workshop files`;
 async function refreshWorkshopImports() {
-  const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
+  const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides', 'stocks'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
   if (result?.stderr) throw new Error("Files were written, but reloading workshop libraries failed. Retry installation before running Snake.");
 }
 
 byId("install-button").addEventListener("click", () => {
   if (!requireDevice()) return;
-  if (!window.confirm("Restart MicroPython and write crowpanel.py, weather.py, slides.py and weather_ca.pem to the board, replacing files with those names? This interrupts any autostart program. No main.py will be created.")) return;
-  void perform("install", "Installing workshop libraries and weather trust certificate…", async () => {
+  if (!window.confirm(`Restart MicroPython and write ${libraryFiles.map(file => file.name).join(", ")} to the board, replacing files with those names? This interrupts any autostart program. No main.py will be created.`)) return;
+  void perform("install", "Installing workshop libraries and HTTPS trust certificates…", async () => {
     const installed = [];
     try {
       await connection.softReset();
@@ -630,7 +634,7 @@ byId("install-button").addEventListener("click", () => {
 
 byId("starter-button").addEventListener("click", () => {
   if (!serialAvailable || job || checkingUsb || transitioning || (!usbDetected && !connection.connected)) return;
-  if (!window.confirm("Restart MicroPython, copy the four workshop files and 00_board_check.py to this board, replacing files with those names, then run a 60-second input demo? No main.py or autostart program will be created.")) return;
+  if (!window.confirm(`Restart MicroPython, copy the ${libraryFiles.length} workshop files and 00_board_check.py to this board, replacing files with those names, then run a 60-second input demo? No main.py or autostart program will be created.`)) return;
   stopRequested = false;
   resetVerification();
   runTask = perform("run", "Connecting and preparing the board check…", async () => {

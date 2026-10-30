@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { runInNewContext } from "node:vm";
-import { withBrowserClock } from "../site/weather-clock.js";
+import { withBrowserClock } from "../site/run-clock.js";
 
 const appSource = await readFile(new URL("../site/app.js", import.meta.url), "utf8");
 const begin = appSource.indexOf("async function runEditor()");
@@ -15,14 +15,14 @@ function deferred() {
   return { promise, resolve };
 }
 
-function fixture(lesson = "weather", now = new Date("2026-10-31T15:16:17Z")) {
+function fixture(lesson = "stocks", now = new Date("2026-10-31T15:16:17Z")) {
   const calls = [];
   const errors = [];
   const output = [];
   const sandbox = {
     editor: { value: "print('learner draft')\n" },
     currentLesson: { id: lesson, sample: lesson },
-    samples: { weather: { name: "04_weather.py" }, snake: { name: "02_snake.py" } },
+    samples: { stocks: { name: "04_stocks.py" }, snake: { name: "02_snake.py" } },
     transitioning: false, stopping: false, job: null, runTask: null,
     stopRequested: false, receivedOutput: 0,
     requireDevice: () => true,
@@ -49,7 +49,7 @@ function fixture(lesson = "weather", now = new Date("2026-10-31T15:16:17Z")) {
   return { sandbox, calls, errors, output, run: () => sandbox.runEditor() };
 }
 
-test("Weather executes UTC clock setup before its draft without editing the learner source", async () => {
+test("Stocks executes UTC clock setup before its draft without editing the learner source", async () => {
   const setup = fixture();
   const draft = setup.sandbox.editor.value;
   await setup.run();
@@ -71,8 +71,8 @@ test("other lessons execute their draft unchanged without setting the clock", as
   assert.equal(setup.sandbox.editor.value, draft);
 });
 
-test("an invalid computer clock prevents Weather execution and preserves its draft", async () => {
-  const setup = fixture("weather", new Date(NaN));
+test("an invalid computer clock prevents Stocks execution and preserves its draft", async () => {
+  const setup = fixture("stocks", new Date(NaN));
   const draft = setup.sandbox.editor.value;
   await setup.run();
   assert.equal(setup.calls.length, 0);
@@ -82,7 +82,7 @@ test("an invalid computer clock prevents Weather execution and preserves its dra
 });
 
 test("navigating while Stop finishes cannot change whether the captured draft receives a clock", async () => {
-  for (const initialLesson of ["weather", "snake"]) {
+  for (const initialLesson of ["stocks", "snake"]) {
     const setup = fixture(initialLesson);
     const stopped = deferred();
     const previousRun = deferred();
@@ -91,7 +91,7 @@ test("navigating while Stop finishes cannot change whether the captured draft re
     setup.sandbox.runTask = previousRun.promise.then(() => { setup.sandbox.job = null; });
     const draft = setup.sandbox.editor.value;
     const pending = setup.run();
-    const nextLesson = initialLesson === "weather" ? "snake" : "weather";
+    const nextLesson = initialLesson === "stocks" ? "snake" : "stocks";
     setup.sandbox.currentLesson = { id: nextLesson, sample: nextLesson };
     setup.sandbox.editor.value = "print('new lesson draft')\n";
     stopped.resolve();
@@ -99,7 +99,7 @@ test("navigating while Stop finishes cannot change whether the captured draft re
     await pending;
     assert.equal(setup.errors.length, 0);
     assert.equal(setup.calls.length, 1);
-    assert.equal(setup.calls[0].source.includes("RTC().datetime"), initialLesson === "weather");
+    assert.equal(setup.calls[0].source.includes("RTC().datetime"), initialLesson === "stocks");
     assert.ok(setup.calls[0].source.endsWith(draft));
     assert.doesNotMatch(setup.calls[0].source, /new lesson draft/);
   }

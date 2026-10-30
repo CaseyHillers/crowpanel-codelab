@@ -20,7 +20,7 @@ test("reset clears the VM, wipes files, clears deletion state, reinstalls and ve
     ["softReset"], ["execute", "wipe", { timeoutMs: 30000 }], ["softReset"], ["writeFiles", files],
   ]);
   assert.equal(calls[4][0], "execute");
-  assert.match(calls[4][1], /import crowpanel, weather, slides/);
+  assert.match(calls[4][1], /import crowpanel, weather, slides, stocks/);
   assert.deepEqual(calls[4][2], { timeoutMs: 10000 });
 });
 

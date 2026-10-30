@@ -1,7 +1,7 @@
 import mac from "../device/examples/01_mac.py?raw";
 import snake from "../device/examples/02_snake.py?raw";
 import slideshow from "../device/examples/03_slideshow.py?raw";
-import weather from "../device/examples/04_weather.py?raw";
+import stocks from "../device/examples/04_stocks.py?raw";
 import inputs from "../device/examples/05_inputs.py?raw";
 import usbSetup from "./usb-setup.html?raw";
 
@@ -9,7 +9,7 @@ export const samples = Object.freeze({
   mac: { name: "01_mac.py", source: mac },
   snake: { name: "02_snake.py", source: snake },
   slideshow: { name: "03_slideshow.py", source: slideshow },
-  weather: { name: "04_weather.py", source: weather },
+  stocks: { name: "04_stocks.py", source: stocks },
   inputs: { name: "05_inputs.py", source: inputs },
 });
 
@@ -17,7 +17,7 @@ export const lessons = [
   {
     id: "welcome", title: "Meet your CrowPanel", navTitle: "Meet the hardware", minutes: 10, sample: "mac",
     summary: "Your board. Your browser. Two hours to build something.",
-    content: `<p class="lesson-note">USB first. Wi-Fi only for weather.</p>`,
+    content: `<p class="lesson-note">USB first. Wi-Fi for the ARM stock quote.</p>`,
   },
   {
     id: "setup", title: "Prepare your computer", navTitle: "Host setup", minutes: 10, sample: "mac", layout: "guide",
@@ -35,7 +35,7 @@ export const lessons = [
       </ol>
       <details><summary>Board revision &amp; troubleshooting</summary>
         <p>These examples target the ESP32-S3R8 with a JD79661 panel. Use the official ESP32_GENERIC_S3 OCTSPIRAM firmware. Stop if your variant differs; USB IDs do not identify the display controller.</p>
-        <p>The check replaces crowpanel.py, weather.py, slides.py, weather_ca.pem and 00_board_check.py. No main.py is created. Reconnect and retry after a partial installation.</p>
+        <p>The check replaces crowpanel.py, weather.py, slides.py, weather_ca.pem, stocks.py, stocks_ca.pem and 00_board_check.py. No main.py is created. Reconnect and retry after a partial installation.</p>
         <p>A BUSY error, missing control or blank screen is not success. The red LED alone is not a power test. For input-only troubleshooting, ask a facilitator to use device/examples/05_inputs.py; it needs no working display.</p>
       </details>`,
   },
@@ -87,15 +87,18 @@ export const lessons = [
       <details><summary>How images work</summary><p>slides.py holds packed monochrome images. Re-run the Board check to install updated artwork. Create your own offline with tools/convert_images.py. Wait for each full refresh before the next press.</p></details>`,
   },
   {
-    id: "weather", title: "Put the weather on your desk", navTitle: "Weather", minutes: 20, sample: "weather", layout: "code",
-    summary: "Guest-AccessNG → Sabre Springs → your display.",
+    id: "stocks", title: "Put ARM’s stock price on your desk", navTitle: "ARM stock price", minutes: 20, sample: "stocks", layout: "code",
+    summary: "Guest-AccessNG → NASDAQ:ARM → your display.",
     content: `
-      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>☀️ Fetch</span><span>→</span><span>Display °F</span></div>
+      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>ARM quote</span><span>→</span><span>Display USD</span></div>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
-      <p>The Weather lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
+      <p>The display shows ARM’s <strong>NASDAQ</strong> quote in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. Quotes are <strong>delayed by 15 minutes</strong>, not real-time. The timestamp marks the last available one-minute bar in UTC; it can be from an earlier session when the market is closed.</p>
+      <p>This script fetches once and refreshes the display once; no automatic polling. Change a label or the layout, then use <strong>Run in RAM</strong> again when you want another quote.</p>
+      <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
+      <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
+      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>TradingView’s public website endpoint needs no API key, but it may rate-limit or change. If a request fails, read the console and try again later; never substitute an invented price. The quote timestamp describes the data’s minute, not the time you clicked Run.</p></details>`,
   },
   {
     id: "finish", title: "What will you build next?", navTitle: "Next projects & cleanup", minutes: 10, sample: "snake", layout: "guide",

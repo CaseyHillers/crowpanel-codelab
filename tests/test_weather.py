@@ -187,6 +187,106 @@ class WeatherTests(unittest.TestCase):
         self.assertIn(b"Connection: close\r\n", request)
         self.assert_closed()
 
+    def test_generic_https_json_uses_custom_host_path_ca_without_weather_schema(self):
+        payload = {"close|1": 205.91, "time|1": 1793390340}
+        self.response(body=json.dumps(payload).encode())
+        result = self.weather.fetch_json(
+            "scanner.tradingview.com", "/symbol?symbol=NASDAQ%3AARM", "stocks_ca.pem", timeout=3,
+        )
+        self.assertEqual(result, payload)
+        self.ssl.SSLContext.assert_called_once_with(self.ssl.PROTOCOL_TLS_CLIENT)
+        self.assertEqual(self.context.verify_mode, self.ssl.CERT_REQUIRED)
+        self.context.load_verify_locations.assert_called_once_with(cafile="stocks_ca.pem")
+        self.socket.getaddrinfo.assert_called_once_with(
+            "scanner.tradingview.com", 443, self.socket.AF_INET, self.socket.SOCK_STREAM,
+        )
+        self.context.wrap_socket.assert_called_once_with(
+            self.raw, server_hostname="scanner.tradingview.com", do_handshake_on_connect=False,
+        )
+        self.assertEqual(bytes(self.sent), (
+            b"GET /symbol?symbol=NASDAQ%3AARM HTTP/1.0\r\n"
+            b"Host: scanner.tradingview.com\r\nConnection: close\r\n"
+            b"Accept: application/json\r\nAccept-Encoding: identity\r\n\r\n"
+        ))
+        self.assertLessEqual(self.raw.settimeout.call_args.args[0], 3)
+        self.ntptime.settime.assert_not_called()
+        self.assert_closed()
+
+    def test_generic_json_accepts_fragmented_eof_delimited_object(self):
+        self.response(body=b'{"quote":1}', status=b"HTTP/1.1 200 OK", length=False)
+        self.fragment_size = 1
+        self.assertEqual(self.weather.fetch_json("quotes.example", "/arm", "quotes.pem"), {"quote": 1})
+        self.assert_closed()
+
+    def test_generic_json_rejects_request_injection_before_tls_or_dns(self):
+        for host, path in [
+            ("quotes.example\r\nInjected: yes", "/arm"),
+            ("quotes.example:443", "/arm"),
+            ("é.example", "/arm"),
+            ("quotes.example", "/arm\r\nInjected: yes"),
+            ("quotes.example", "/a b"),
+            ("quotes.example", "https://quotes.example/arm"),
+            ("quotes.example", "/é"),
+        ]:
+            with self.subTest(host=host, path=path):
+                with self.assertRaises(ValueError):
+                    self.weather.fetch_json(host, path, "quotes.pem")
+        self.ssl.SSLContext.assert_not_called()
+        self.socket.getaddrinfo.assert_not_called()
+        self.socket.socket.assert_not_called()
+
+    def test_generic_json_retains_clock_guard_before_tls_or_dns(self):
+        self.clock.year = 2025
+        with self.assertRaises(OSError):
+            self.weather.fetch_json("quotes.example", "/arm", "quotes.pem")
+        self.ssl.SSLContext.assert_not_called()
+        self.socket.getaddrinfo.assert_not_called()
+
+    def test_generic_json_does_not_fall_back_after_ca_or_certificate_failure(self):
+        self.context.load_verify_locations.side_effect = OSError("missing quote CA")
+        with self.assertRaisesRegex(OSError, "missing quote CA"):
+            self.weather.fetch_json("quotes.example", "/arm", "quotes.pem")
+        self.socket.getaddrinfo.assert_not_called()
+        self.socket.socket.assert_not_called()
+        self.context.load_verify_locations.side_effect = None
+        self.stream.write.side_effect = OSError("quote hostname mismatch")
+        with self.assertRaisesRegex(OSError, "quote hostname mismatch"):
+            self.weather.fetch_json("quotes.example", "/arm", "quotes.pem")
+        self.assertEqual(self.context.verify_mode, self.ssl.CERT_REQUIRED)
+        self.context.wrap_socket.assert_called_once()
+        self.assert_closed()
+
+    def test_generic_json_rejects_unsafe_http_and_non_object_bodies(self):
+        responses = [
+            b"HTTP/1.0 302 Found\r\nContent-Length: 0\r\n\r\n",
+            b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n",
+            b"HTTP/1.0 200 OK\r\nContent-Encoding: gzip\r\n\r\n{}",
+            b"HTTP/1.0 200 OK\r\nBad header\r\n\r\n{}",
+            b"HTTP/1.0 200 OK\r\nContent-Length: 10\r\n\r\n{}",
+            b"HTTP/1.0 200 OK\r\nContent-Length: 2\r\nContent-Length: 2\r\n\r\n{}",
+            b"HTTP/1.0 200 OK\r\n\r\nnot json",
+            b"HTTP/1.0 200 OK\r\n\r\n[]",
+        ]
+        for response in responses:
+            with self.subTest(response=response):
+                self.stream.close.reset_mock()
+                self.raw.close.reset_mock()
+                self.reply = bytearray(response)
+                with self.assertRaises(ValueError):
+                    self.weather.fetch_json("quotes.example", "/arm", "quotes.pem")
+                self.assert_closed()
+
+    def test_generic_json_rejects_declared_and_streamed_oversize_before_parsing(self):
+        for length in (True, False):
+            with self.subTest(length=length):
+                self.stream.close.reset_mock()
+                self.raw.close.reset_mock()
+                self.response(body=b" " * 17000, length=length)
+                with self.assertRaises(ValueError):
+                    self.weather.fetch_json("quotes.example", "/arm", "quotes.pem")
+                self.assertGreater(len(self.reply), 0)
+                self.assert_closed()
+
     def test_fragmented_http11_response_and_eof_delimited_body(self):
         self.response(status=b"HTTP/1.1 200 OK", length=False)
         self.fragment_size = 1

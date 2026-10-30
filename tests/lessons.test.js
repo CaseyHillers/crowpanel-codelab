@@ -25,7 +25,7 @@ const text = (html) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
 
 test("the course checks factory hardware before exercises and totals 120 minutes", () => {
   assert.deepEqual(Array.from(lessons, (lesson) => lesson.id), [
-    "welcome", "setup", "verify", "snake", "mac", "slideshow", "weather", "finish",
+    "welcome", "setup", "verify", "snake", "mac", "slideshow", "stocks", "finish",
   ]);
   assert.equal(totalMinutes, 120);
   assert.equal(lessons.reduce((total, lesson) => total + lesson.minutes, 0), 120);
@@ -47,7 +47,7 @@ test("every lesson resolves to a nonempty sample from an existing Python file", 
 test("host preparation and verification stay separate from the code workspace", () => {
   assert.equal(lessonById.welcome.layout, undefined);
   for (const lessonId of ["setup", "verify", "finish"]) assert.equal(lessonById[lessonId].layout, "guide");
-  for (const lessonId of ["snake", "mac", "slideshow", "weather"]) {
+  for (const lessonId of ["snake", "mac", "slideshow", "stocks"]) {
     assert.equal(lessonById[lessonId].layout, "code");
     assert.equal(lessonById[lessonId].sample, lessonId);
   }
@@ -157,25 +157,37 @@ test("noscript Snake preserves the automatic controls without JavaScript", async
 });
 
 test("inline open Wi-Fi defaults disclose private code exposure without weakening security", () => {
-  const weather = text(primary(lessonById.weather));
-  assert.match(weather, /WIFI_SSID\s*=\s*"Guest-AccessNG"/);
-  assert.match(weather, /WIFI_PASSWORD\s*=\s*"".*open network/i);
-  assert.match(weather, /another approved network.*edit those two variables/i);
-  assert.match(weather, /Private credentials in code are visible in the editor and included in downloads/i);
-  assert.match(weather, /Remove them before sharing/i);
-  assert.match(weather, /Never print secrets, store them in browser storage, or disable TLS verification/i);
-  assert.match(weather, /(?:never|do not|don't)[^.]*\b(?:disable|bypass)\b[^.]*TLS/i);
-  assert.doesNotMatch(weather, /(?:only|must)[^.]*Wi-Fi form|write[^.]*wifi_config\.py/i);
-  assert.match(samples.weather.source, /^WIFI_SSID\s*=\s*"Guest-AccessNG"$/m);
-  assert.match(samples.weather.source, /^WIFI_PASSWORD\s*=\s*""$/m);
-  assert.doesNotMatch(samples.weather.source, /from wifi_config import/);
-  assert.match(samples.weather.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_weather\(\)/);
+  const stocks = text(primary(lessonById.stocks));
+  assert.match(stocks, /WIFI_SSID\s*=\s*"Guest-AccessNG"/);
+  assert.match(stocks, /WIFI_PASSWORD\s*=\s*"".*open network/i);
+  assert.match(stocks, /another approved network.*edit those two variables/i);
+  assert.match(stocks, /Private credentials in code are visible in the editor and included in downloads/i);
+  assert.match(stocks, /Remove them before sharing/i);
+  assert.match(stocks, /Never print secrets, store them in browser storage, or disable TLS verification/i);
+  assert.match(stocks, /(?:never|do not|don't)[^.]*\b(?:disable|bypass)\b[^.]*TLS/i);
+  assert.doesNotMatch(stocks, /(?:only|must)[^.]*Wi-Fi form|write[^.]*wifi_config\.py/i);
+  assert.match(samples.stocks.source, /^WIFI_SSID\s*=\s*"Guest-AccessNG"$/m);
+  assert.match(samples.stocks.source, /^WIFI_PASSWORD\s*=\s*""$/m);
+  assert.doesNotMatch(samples.stocks.source, /from wifi_config import/);
+  assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_quote\(\)/);
 
-  const troubleshooting = text(lessonById.weather.content);
+  assert.equal(lessonById.weather, undefined);
+  assert.equal(lessonById.stocks.minutes, 20);
+  assert.equal(samples.stocks.name, "04_stocks.py");
+  assert.match(stocks, /ARM.*NASDAQ/i);
+  assert.match(stocks, /TradingView/);
+  assert.match(stocks, /15 minutes.*delayed|delayed.*15 minutes/i);
+  assert.match(stocks, /minute.*UTC/i);
+  assert.match(stocks, /not.*real.time/i);
+  assert.match(stocks, /fetches once.*no.*polling/i);
+  assert.match(stocks, /NTP is not required/i);
+  assert.match(stocks, /Board check.*Advanced install.*no firmware reflash/i);
+
+  const troubleshooting = text(lessonById.stocks.content);
   assert.match(troubleshooting, /2\.4 GHz/);
   assert.match(troubleshooting, /clock synchronization/i);
   assert.match(troubleshooting, /Captive portals and enterprise 802\.1X are not supported; MAC registration does not add that support/i);
-  assert.match(troubleshooting, /weather_ca\.pem.*HTTPS verification enabled/i);
+  assert.match(troubleshooting, /stocks_ca\.pem.*HTTPS verification enabled/i);
   assert.match(text(lessonById.mac.content), /without joining Wi-Fi.*Registration isn’t a connection test/i);
 });
 

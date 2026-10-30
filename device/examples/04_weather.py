@@ -4,8 +4,9 @@ An empty password selects the open workshop network (no Wi-Fi password).
 MAC registration does not add enterprise 802.1X support; captive portals
 are not handled. Do not share this script with private credentials in it.
 
-Run in RAM from the browser's Weather lesson sets the RTC from your computer
-over USB before this script runs. No NTP is needed. For standalone use, set
+This optional example is outside the timed course. Paste it into the browser's
+Stocks lesson to set the RTC from your computer over USB before running.
+No NTP is needed. For standalone use, set
 machine.RTC to accurate UTC over USB first (again after loss of power), or use
 weather.sync_time() only on networks that permit NTP. HTTPS stays verified.
 """

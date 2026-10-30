@@ -1,4 +1,4 @@
-"""Bounded weather operations; DNS uses the firmware resolver's own timeout."""
+"""Shared Wi-Fi/verified HTTPS and optional weather; DNS uses the resolver timeout."""
 
 import errno
 import json
@@ -43,7 +43,7 @@ def _pause(started, timeout_ms):
 
 def _require_clock():
     if time.gmtime()[0] < 2026:
-        raise OSError("clock is before 2026; run from the browser Weather lesson to set UTC, or set machine.RTC before HTTPS")
+        raise OSError("clock is before 2026; run from the browser Stocks lesson to set UTC, or set machine.RTC before HTTPS")
 
 
 def connect(ssid, password, timeout=15):
@@ -145,19 +145,19 @@ def _parse_headers(headers):
         if name == b"transfer-encoding":
             raise ValueError("transfer encoding, including chunked, is unsupported")
         if name == b"content-encoding" and value.lower() != b"identity":
-            raise ValueError("compressed weather responses are unsupported")
+            raise ValueError("compressed HTTPS responses are unsupported")
         if name == b"content-length":
             if length is not None or not value or any(
                 character < 48 or character > 57 for character in value
             ):
                 raise ValueError("invalid or duplicate Content-Length")
             if len(value) > 5:
-                raise ValueError("weather response exceeds 16 KiB")
+                raise ValueError("HTTPS response exceeds 16 KiB")
             length = int(value)
     return length
 
 
-def _read_response(stream, started, timeout_ms):
+def _read_response(stream, started, timeout_ms, current_conditions=True):
     response = bytearray()
     body_start = None
     length = None
@@ -169,7 +169,7 @@ def _read_response(stream, started, timeout_ms):
             if received == length:
                 break
         if len(response) >= _MAX_RESPONSE:
-            raise ValueError("weather response exceeds 16 KiB")
+            raise ValueError("HTTPS response exceeds 16 KiB")
         chunk = _read(stream, min(512, _MAX_RESPONSE - len(response)), started, timeout_ms)
         if not chunk:
             if body_start is None or (
@@ -186,12 +186,14 @@ def _read_response(stream, started, timeout_ms):
                     raise ValueError("HTTP headers exceed 4 KiB")
                 length = _parse_headers(bytes(response[:marker]))
                 if length is not None and body_start + length > _MAX_RESPONSE:
-                    raise ValueError("weather response exceeds 16 KiB")
+                    raise ValueError("HTTPS response exceeds 16 KiB")
             elif len(response) >= _MAX_HEADERS:
                 raise ValueError("HTTP headers exceed 4 KiB")
     document = json.loads(response[body_start:].decode("utf-8"))
     if not isinstance(document, dict):
-        raise ValueError("weather response must be an object")
+        raise ValueError("HTTPS response must be an object")
+    if not current_conditions:
+        return document
     current = document.get("current")
     if not isinstance(current, dict) or not all(field in current for field in _FIELDS):
         raise ValueError("weather response is missing current conditions")
@@ -214,13 +216,31 @@ def fetch_weather(timeout=10):
     HTTP headers and body together are limited to 16 KiB; chunking is rejected.
     DNS is subject to the port's resolver timeout, not the socket deadline.
     """
+    return _fetch_json(_HOST, _PATH, "weather_ca.pem", timeout, True)
+
+
+def fetch_json(host, path, cafile, timeout=10):
+    """Fetch a bounded HTTPS JSON object with certificate/hostname verification.
+
+    Used by the stock lesson too. No redirects, compression or chunked bodies.
+    DNS retains the firmware resolver's own timeout.
+    """
+    return _fetch_json(host, path, cafile, timeout, False)
+
+
+def _fetch_json(host, path, cafile, timeout, current_conditions):
     timeout_ms = _timeout_ms(timeout)
+    if (not isinstance(host, str) or not host or len(host) > 253
+            or any(ord(char) > 127 or not (char.isalnum() or char in ".-") for char in host)
+            or not isinstance(path, str) or not path.startswith("/")
+            or any(ord(char) < 33 or ord(char) > 126 for char in path)):
+        raise ValueError("invalid HTTPS host or path")
     started = time.ticks_ms()
     _require_clock()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations(cafile="weather_ca.pem")
-    addresses = socket.getaddrinfo(_HOST, 443, socket.AF_INET, socket.SOCK_STREAM)
+    context.load_verify_locations(cafile=cafile)
+    addresses = socket.getaddrinfo(host, 443, socket.AF_INET, socket.SOCK_STREAM)
     _remaining(started, timeout_ms)
     if not addresses:
         raise OSError("weather hostname did not resolve")
@@ -234,15 +254,15 @@ def fetch_weather(timeout=10):
         _remaining(started, timeout_ms)
         raw.setblocking(False)
         stream = context.wrap_socket(
-            raw, server_hostname=_HOST, do_handshake_on_connect=False,
+            raw, server_hostname=host, do_handshake_on_connect=False,
         )
         request = (
-            "GET " + _PATH + " HTTP/1.0\r\nHost: " + _HOST
+            "GET " + path + " HTTP/1.0\r\nHost: " + host
             + "\r\nConnection: close\r\nAccept: application/json"
             + "\r\nAccept-Encoding: identity\r\n\r\n"
         ).encode("ascii")
         _write_all(stream, request, started, timeout_ms)
-        return _read_response(stream, started, timeout_ms)
+        return _read_response(stream, started, timeout_ms, current_conditions)
     finally:
         try:
             _close(stream)
