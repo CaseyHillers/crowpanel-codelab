@@ -41,8 +41,26 @@ operations. No stock photography, icon packs or third-party font files are
 bundled. Local macOS setup screenshots supplied by Casey Hillers are included;
 their provenance is recorded in `guides/macos/README.md`.
 
-Course drafts live only in JavaScript memory for the
-current tab. There is no localStorage, IndexedDB or server-side draft storage.
+Lesson drafts live only in JavaScript memory for the current tab. The separate
+Your project workspace allows explicit localStorage saves of named Python files
+under `crowpanel.projects.v1`, including source and last-saved time. It has no
+server-side storage or synchronization. Browser storage is plaintext and can be
+cleared or unavailable; download copies and never save credentials, secrets or
+private information. No source is sent to an AI service or automatically run.
+The shared editor's file selector also exposes bundled workshop scripts,
+libraries and trust certificates. This is bundled source with tab-memory edits,
+not a browser of the connected device's actual files. Only the primary custom
+project file is included in explicit browser saves; bundled file edits are not
+project-persisted and must be downloaded separately to keep them.
+
+Run in RAM and Save as main.py are available only for scripts. The separate
+Write selected file to device action explicitly confirms overwriting its
+captured filename, copies only that draft and evicts all workshop library imports
+after a successful write. Failed writes or import refreshes do not report success.
+It never automatically runs source or verifies hardware output. Board check,
+Advanced install and Reset device reinstall bundled originals, replacing
+customized workshop copies on the board.
+
 Archived stock lesson defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""` for the open workshop network, not a separate config file.
 There is no separate app Wi-Fi form. Optional private credentials edited into

@@ -138,6 +138,23 @@ if editor initialization fails. Brief tasks and expected results sit alongside;
 longer troubleshooting stays in disclosures. The USB diagram and display-change
 illustration are guides, not live hardware output.
 
+The editor's file selector opens bundled workshop scripts, Python libraries and
+trust certificates in the same workspace. These are the site's bundled sources
+with edits held in tab memory, not a listing or download of files currently on
+the connected board. Switching files preserves these temporary edits. Only
+scripts offer Run in RAM and Save as main.py; libraries and certificates can be
+edited and downloaded but are not run as standalone applications.
+
+Choose **Write selected file to device** to copy the selected draft to its
+filename on the board. This requires explicit overwrite confirmation and writes
+only the filename and source captured when the action began. After a successful
+write, the browser evicts all workshop library imports so the next script can
+load the updated modules. A write or import-refresh failure is not success;
+check the error before retrying. Writing does not run the file or prove that
+the physical board behaves correctly. Board check, Advanced install and Reset
+device use bundled originals and replace custom copies of workshop files on
+the board; download edited sources before using these actions.
+
 Each code lesson also has **Make something new with Codex** below the editor.
 Learners describe an idea and copy a prompt containing the verified hardware API,
 pin map, e-paper refresh constraints and safe stock/slide examples. The prompt
@@ -147,11 +164,39 @@ pasting and running it. Generated code is not guaranteed safe or correct.
 
 **Run in RAM** does not create
 `main.py`. Stop interrupts long-running scripts. Saving as `main.py` is an
-explicit, confirmed action because it runs at boot. Downloads are the way to
-keep work: drafts are in memory only and disappear on reload. Lessons have no
+explicit, confirmed action because it runs at boot. Lesson drafts are in memory
+only and disappear on reload; download them to keep work. The separate Your project
+workspace supports explicit browser saves. Lessons have no
 general lesson-completion tracking; use Previous/Next or the sidebar. Host setup
 requires the USB check; Board check requires observed cycles, the display marker
 and explicit visual confirmation, not an automatic hardware PASS.
+
+## Your project workspace
+
+Open **Your project · Python editor** in the sidebar (`#project`) to keep building
+after the workshop. It is outside the 120-minute course. The starter draws one
+message with the existing CrowPanel driver; Run in RAM, Stop, Download and the
+manual main.py controls work as in the lessons. Browser saving never runs code
+or writes to the board.
+
+Name a `.py` file and choose **Save in browser** (Ctrl/⌘ + S in the editor).
+Create several projects, reopen them from Saved projects, or delete a saved copy
+while keeping its code open. Unsaved changes require confirmation before
+switching, creating a project or restoring the starter, and warn on page exit.
+Lesson drafts remain separate and live only in tab memory.
+
+Browser saving applies only to the project's own Python file. Edits to bundled
+scripts, libraries and certificates opened through the file selector remain in
+tab memory and are not included in the saved project. Return to the project file
+to save it; download other edited files separately.
+
+Project source and filenames are stored as plaintext under
+`crowpanel.projects.v1` in localStorage for this site/browser profile. Saves are
+explicit, not automatic. Do not save passwords, Wi-Fi credentials, secrets or
+private information. Storage does not sync between browsers or computers; private
+browsing and clearing site data can remove it. Download `.py` copies for lasting
+backups. Blocked/full storage and invalid saved data show errors and preserve
+the current editor; invalid stored data is never silently overwritten.
 
 ## Firmware and USB setup
 
@@ -306,7 +351,10 @@ For terminal use: `.venv/bin/mpremote connect /dev/cu.wchusbserial21410 run devi
 ### Installed files
 
 Board check and Advanced install copy these seven runtime/data files. Board check
-also copies `00_board_check.py` before running it in RAM.
+also copies `00_board_check.py` before running it in RAM. These installation and
+reset paths always use the bundled originals, even if a file's editor draft or
+its current device copy has been customized. To apply one edited file instead,
+use the editor's explicitly confirmed **Write selected file to device** action.
 
 - `device/crowpanel.py`: SSD1680/JD79661 full-refresh presets, 250 × 122 landscape.
 - `device/slides.py`: original Crow, Circuit, and Summit bitmaps.
@@ -412,6 +460,16 @@ market data. Keep TradingView attribution and the quote's delay/time visible.
 On October 30, 2026, a host request using HTTP/1.0, `stocks_ca.pem` and
 `Accept-Encoding: identity` received a 160-byte JSON response with Content-Length.
 This does not verify the Wi-Fi request or physical display on a board.
+
+The stock sample allows one shared 30-second HTTPS budget for DNS, TCP, TLS,
+request writing and response reading; it never retries automatically. The
+resolver retains its own firmware timeout, which can overrun this budget before
+returning. Timeout errors identify DNS, TCP, TLS handshake/request write or
+response read when the shared deadline is checked. The first nonblocking TLS
+write may still be performing the handshake, so a write-stage timeout does not
+prove that certificate validation succeeded. Keep certificate verification on.
+Power-cycle before comparing Wi-Fi networks: the current connect helper can
+reuse an existing association even if the edited SSID differs.
 
 The `#weather` and `#stocks` links open their separate archived lessons.
 The `04_weather.py` example remains outside the timed course; its data is

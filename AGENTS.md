@@ -19,6 +19,29 @@
 - `site/code-editor.js`: locally bundled CodeMirror Python editor with textarea
   fallback. Preserve per-lesson drafts, downloads, keyboard focus escape and the
   Ctrl/⌘ + Enter run shortcut; never send source to a build service.
+  The shared file selector exposes bundled workshop scripts, Python libraries
+  and trust certificates; it does not enumerate/read the actual device filesystem.
+  Preserve edits across file switches in tab memory. Run in RAM and Save as
+  main.py apply only to scripts, never selected libraries or certificates.
+  Write selected file to device requires explicit overwrite confirmation, writes
+  only the captured filename/source, then evicts all workshop library imports
+  after successful writing. Write/reload failures must not report success.
+  Writing never automatically runs the file or verifies physical board output.
+  Board check/Advanced install/Reset device use bundled originals, not editor
+  drafts; explain that these actions replace customized workshop files on device.
+- `#project` is a separate untimed workspace using the shared editor and USB
+  controls. `site/project-workspace.js` manages explicit browser saves, multiple
+  named .py projects, unsaved-change warnings and Ctrl/⌘ + S. `project-store.js`
+  uses versioned localStorage only for projects explicitly saved here; lesson
+  drafts stay in memory. Validate filenames/schema and preserve saved data on
+  storage errors; never silently replace corrupt data. New/switch/reset actions
+  must protect unsaved edits; deleting a saved copy keeps the code open. Browser
+  saving never runs source, writes device files or contacts a backend. Warn that
+  site-data clearing/private browsing can lose projects and that browser saves
+  must contain no passwords, credentials or private information.
+  Only the primary custom project file is browser-persisted. Selected bundled
+  scripts/libraries/certificates stay in tab memory and are not saved as part of
+  the project; browser save must not accidentally persist the selected support file.
 - `site/lessons.js`: host setup preserves factory firmware; `verify` is the single
   Board check, with factory checks before optional confirmed flashing. Workshop
   boards arrive fresh out of the box; no initial backup step. Finish offers
@@ -169,7 +192,8 @@
 - Never log Wi-Fi credentials or persist them in browser storage. Inline stock
   settings are explicitly learner-editable; private credentials will be visible
   in editor drafts and downloads. Warn learners to remove them before sharing,
-  including any device files/legacy wifi_config.py. Drafts stay in tab memory.
+  including any device files/legacy wifi_config.py. Lesson drafts stay in tab
+  memory; only explicit Your project saves persist in browser storage.
   Saving `main.py` needs explicit consent; deletion is not forensic secure erase.
 - Firmware installation replaces factory firmware. Require confirmation before flash.
 - Preserve verified TLS and time synchronization; never disable verification.
