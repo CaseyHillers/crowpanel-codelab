@@ -4,6 +4,7 @@ import slideshow from "../device/examples/03_slideshow.py?raw";
 import stocks from "../device/examples/04_stocks.py?raw";
 import weather from "../device/examples/04_weather.py?raw";
 import message from "../device/examples/04_desk_message.py?raw";
+import project from "../device/examples/my_project.py?raw";
 import inputs from "../device/examples/05_inputs.py?raw";
 import usbSetup from "./usb-setup.html?raw";
 
@@ -14,6 +15,7 @@ export const samples = Object.freeze({
   stocks: { name: "04_stocks.py", source: stocks },
   weather: { name: "04_weather.py", source: weather },
   message: { name: "04_desk_message.py", source: message },
+  project: { name: "my_project.py", source: project },
   inputs: { name: "05_inputs.py", source: inputs },
 });
 
@@ -118,6 +120,7 @@ export const lessons = [
         <li><span aria-hidden="true">🚦</span><div><strong>Build-status display</strong><p>Passed, running or needs attention—at a glance.</p></div></li>
         <li><span aria-hidden="true">🌱</span><div><strong>Desk companion</strong><p>A focus timer, plant reminder or daily pixel-art postcard.</p></div></li>
       </ul>
+      <p><a href="#project">Continue in Your project</a> to save your own Python files in this browser.</p>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>
       <details open><summary>Before you unplug</summary><p>Download your work. Remove private Wi-Fi credentials from drafts, downloads and any device files (including wifi_config.py or main.py if used). Choose Stop, then Disconnect. Drafts disappear when this tab closes.</p></details>
       <details><summary>Want it to start on power-up?</summary><p>Save as main.py only when ready: it overwrites the boot program and runs on every reset. Keep USB access to interrupt with Ctrl-C. Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p></details>
@@ -152,12 +155,23 @@ export const lessons = [
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
       <p>The display shows ARM’s <strong>NASDAQ</strong> quote in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. Quotes are <strong>delayed by 15 minutes</strong>, not real-time. The timestamp marks the last available one-minute bar in UTC; it can be from an earlier session when the market is closed.</p>
-      <p>This script fetches once and refreshes the display once; no automatic polling. Change a label or the layout, then use <strong>Run in RAM</strong> again when you want another quote.</p>
+      <p>This script fetches once and refreshes the display once; no automatic polling. It allows up to 30 seconds for the HTTPS request, including DNS, connection setup and TLS. Change a label or the layout, then use <strong>Run in RAM</strong> again when you want another quote.</p>
       <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>TradingView’s public website endpoint needs no API key, but it may rate-limit or change. If a request fails, read the console and try again later; never substitute an invented price. The quote timestamp describes the data’s minute, not the time you clicked Run.</p></details>`,
+      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>A TLS handshake/request write timeout means no verified response was received; a longer wait does not guarantee success. A certificate error must not be bypassed. If comparing networks, power-cycle the board before switching to your hotspot so an existing Wi-Fi association is not reused. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. If a request fails, read the console and try again later; never substitute an invented price. The quote timestamp describes the data’s minute, not the time you clicked Run.</p></details>`,
   },
 ];
 
 export const totalMinutes = lessons.filter(lesson => !lesson.archived).reduce((total, lesson) => total + lesson.minutes, 0);
+
+// Independent workspace: outside the timed course and its Previous/Next sequence.
+export const projectPage = {
+  id: "project", title: "Your project", sample: "project", layout: "code",
+  summary: "Keep building with the same editor and device controls.",
+  content: `<p>Start with the sample or your own Python. Name your file, edit, then choose <strong>Save in browser</strong> to return to it later. You can keep several projects here.</p>
+    <p>Projects stay in this browser profile on this site. They do not sync to other computers; clearing site data removes them, and private browsing may discard them. Download a .py copy for a lasting backup.</p>
+    <p><strong>Do not save Wi-Fi passwords, credentials or private information here.</strong> Browser storage is plaintext and accessible to scripts on this site. Lesson drafts still stay in tab memory.</p>
+    <p>Use <strong>Run in RAM</strong> to try your code. Saving in the browser does not write to the board or run anything. Use <a href="#verify">Board check</a> first if you need to install the workshop libraries.</p>
+    <details><summary>Display tips</summary><p>Built-in text uses an 8×8 ASCII font on a 250×122 screen. A full refresh is slow. Draw once or only when content changes, and wait at least two seconds after each completed refresh before starting another. Keep interactive loops bounded and use Stop to interrupt them.</p></details>`,
+};

@@ -1,5 +1,5 @@
 import { MicroPythonConnection } from "./serial.js";
-import { lessons, samples, totalMinutes } from "./lessons.js";
+import { lessons, samples, totalMinutes, projectPage } from "./lessons.js";
 import { FIRMWARE } from "./firmware.js";
 import { flashMicroPython } from "./flash.js";
 import { createHardwareStory } from "./hardware-story.js";
@@ -8,6 +8,9 @@ import { checkUsbDevice, detectHostOs } from "./usb-check.js";
 import { createProjectPrompt } from "./codex-prompts.js";
 import { createStarterInputs } from "./starter-inputs.js";
 import { resetDevice } from "./device-reset.js";
+import { createWorkshopFiles } from "./workshop-files.js";
+import { createProjectWorkspace } from "./project-workspace.js";
+import { normalizeProjectName } from "./project-store.js";
 import { DeskMessageConnection, layoutMessage } from "./desk-message.js";
 import { withBrowserClock } from "./run-clock.js";
 import resetFilesSource from "../device/diagnostics/reset_files.py?raw";
@@ -28,7 +31,7 @@ const consoleOutput = byId("console-output");
 const drafts = new Map();
 const coreLessons = lessons.filter(lesson => !lesson.archived);
 const archivedLessons = lessons.filter(lesson => lesson.archived);
-const lessonSequence = () => currentLesson?.archived ? archivedLessons : coreLessons;
+const lessonSequence = () => currentLesson?.id === "project" ? [] : currentLesson?.archived ? archivedLessons : coreLessons;
 const libraryFiles = [
   { name: "crowpanel.py", data: panelSource },
   { name: "weather.py", data: weatherSource },
@@ -37,6 +40,12 @@ const libraryFiles = [
   { name: "stocks.py", data: stocksSource },
   { name: "stocks_ca.pem", data: stocksCa },
   { name: "desk_message.py", data: deskMessageSource },
+];
+const workshopSources = [
+  ...Object.values(samples).map(file => ({ name: file.name, source: file.source, kind: "script" })),
+  { name: "00_board_check.py", source: starterSource, kind: "script" },
+  { name: "02_snake_solution.py", source: snakeSolution, kind: "script" },
+  ...libraryFiles.map(file => ({ name: file.name, source: file.data, kind: file.name.endsWith(".pem") ? "certificate" : "library" })),
 ];
 const serialAvailable = Boolean(globalThis.isSecureContext && navigator.serial);
 let currentLesson;
@@ -58,6 +67,20 @@ let starterActive = false;
 const observedInputs = new Map();
 let celebrationShown = false;
 let boardVerified = false;
+const projectWorkspace = createProjectWorkspace({
+  editor, byId, starter: samples.project.source,
+  onChange() {
+    if (currentLesson?.id !== "project" || workshopFiles.active) return;
+    byId("editor-filename").textContent = projectWorkspace.filename;
+    editor.setAttribute("aria-label", `Source: ${projectWorkspace.filename}, ${currentLesson.title}`);
+    updateDraftState();
+  },
+});
+const workshopFiles = createWorkshopFiles({
+  editor, byId, files: workshopSources,
+  onPrimary() { showPrimarySource(); syncEditorFile(); },
+  onChange() { syncEditorFile(); },
+});
 const starterInputs = createStarterInputs((name, state) => {
   observedInputs.set(name, state);
   const indicator = document.querySelector(`[data-input="${name}"]`);
@@ -228,6 +251,10 @@ function updateControls() {
   }
   byId("run-button").disabled = !serialAvailable || !connection.connected || transitioning || stopping || Boolean(job && job.kind !== "run");
   byId("run-button").textContent = job?.kind === "run" ? "Run again…" : "Run in RAM";
+  if (workshopFiles.active && workshopFiles.active.kind !== "script") {
+    byId("run-button").disabled = true;
+    byId("save-main").disabled = true;
+  }
   byId("connect-button").disabled = !serialAvailable || connection.connected || busy;
   byId("disconnect-button").disabled = !connection.connected || transitioning || job?.kind === "flash" || job?.kind === "connect";
   byId("reset-device").disabled = !serialAvailable || !connection.connected || transitioning || stopping || checkingUsb || Boolean(job && job.kind !== "run");
@@ -282,16 +309,16 @@ function setNavOpen(open) {
 }
 
 function renderLesson({ focus = false } = {}) {
-  if (currentLesson) drafts.set(currentLesson.id, editor.value);
+  if (currentLesson && currentLesson.id !== "project" && !workshopFiles.active) drafts.set(currentLesson.id, editor.value);
   const requestedId = location.hash.slice(1);
   const id = ({ inputs: "verify", hello: "snake" })[requestedId] || requestedId;
   const isAppendix = id === "appendix";
-  const next = lessons.find((lesson) => lesson.id === id) || lessons[0];
+  const next = id === "project" ? projectPage : lessons.find((lesson) => lesson.id === id) || lessons[0];
   if (currentLesson?.id === "message" && (next.id !== "message" || isAppendix)) deskMessage.disconnect();
   currentLesson = next;
   const sample = samples[next.sample];
   byId("lesson-title").textContent = isAppendix ? "Hardware & 3D prints" : next.title;
-  byId("lesson-duration").hidden = isAppendix;
+  byId("lesson-duration").hidden = isAppendix || next.id === "project";
   byId("lesson-duration").textContent = next.archived ? "Archived · outside the course" : `${next.minutes} min`;
   byId("lesson-summary").textContent = isAppendix ? "The full CAD explorer and optional desk-kit print files. Outside the timed course." : next.summary;
   const isWelcome = !isAppendix && next.id === "welcome";
@@ -310,7 +337,7 @@ function renderLesson({ focus = false } = {}) {
   byId("jump-to-code").hidden = !isCode;
   byId("host-visual").hidden = isAppendix || next.id !== "setup";
   byId("verification-visual").hidden = !isVerify;
-  document.querySelector(".lesson-footer").hidden = isAppendix;
+  document.querySelector(".lesson-footer").hidden = isAppendix || next.id === "project";
   byId("hardware-intro").hidden = !isWelcome;
   hardwareStory.setActive(isWelcome);
   byId("hardware-appendix").hidden = !isAppendix;
@@ -330,9 +357,9 @@ function renderLesson({ focus = false } = {}) {
       : serialAvailable ? "○ Not checked. Select the board to unlock Next." : "USB access isn’t available. Use desktop Chrome or Edge on HTTPS or localhost. You can still read the lessons from the sidebar.";
     byId("usb-check-status").dataset.state = usbDetected ? "detected" : "waiting";
   }
-  byId("editor-filename").textContent = sample.name;
-  editor.value = drafts.get(next.id) ?? sample.source;
-  editor.setAttribute("aria-label", `Python source: ${sample.name}, ${next.title}`);
+  workshopFiles.configure(next.id === "project" ? "Your project" : sample.name);
+  showPrimarySource();
+  syncEditorFile();
   byId("setup-tools").hidden = !isVerify;
   byId("desk-message-tools").hidden = isAppendix || next.id !== "message";
   byId("show-solution").hidden = isAppendix || next.id !== "snake";
@@ -347,6 +374,8 @@ function renderLesson({ focus = false } = {}) {
   }
   if (isAppendix) byId("nav-appendix").setAttribute("aria-current", "page");
   else byId("nav-appendix").removeAttribute("aria-current");
+  if (!isAppendix && next.id === "project") byId("nav-project").setAttribute("aria-current", "page");
+  else byId("nav-project").removeAttribute("aria-current");
   if (!isAppendix) updateDraftState();
   updateProjectPrompt();
   updateControls();
@@ -358,7 +387,40 @@ function renderLesson({ focus = false } = {}) {
   }
 }
 
+function showPrimarySource() {
+  const sample = samples[currentLesson.sample];
+  if (currentLesson.id === "project") projectWorkspace.open();
+  else editor.value = drafts.get(currentLesson.id) ?? sample.source;
+}
+
+function syncEditorFile() {
+  if (!currentLesson) return;
+  const file = workshopFiles.active;
+  const project = currentLesson.id === "project" && !file;
+  const filename = file?.name ?? (project ? projectWorkspace.filename : samples[currentLesson.sample].name);
+  byId("editor-filename").textContent = filename;
+  editor.setAttribute("aria-label", `Source: ${filename}, ${currentLesson.title}`);
+  byId("project-files").hidden = !project;
+  byId("show-solution").hidden = Boolean(file) || currentLesson.id !== "snake";
+  byId("write-workshop-file").hidden = !file;
+  byId("boot-tools").hidden = Boolean(file && file.kind !== "script");
+  byId("download-button").textContent = file?.kind === "certificate" ? "Download .pem" : "Download .py";
+  byId("reset-editor").textContent = file ? "Restore bundled file" : project ? "Restore starter" : "Reset sample";
+  byId("editor-help").textContent = file
+    ? file.kind === "script" ? "Run this script in RAM, or explicitly write it to the device. Edits stay in this tab."
+      : "Write selected file to device to apply your changes, then run your lesson script. Edits stay in this tab."
+    : project ? "Ctrl/⌘ + Enter to run · Ctrl/⌘ + S to save in browser · Tab moves focus · Save or download to keep edits."
+      : "Ctrl/⌘ + Enter to run · Tab moves focus · Edits stay in this tab; download to keep them.";
+  updateDraftState();
+  updateControls();
+}
+
 function updateDraftState() {
+  if (workshopFiles.active) { byId("draft-state").textContent = workshopFiles.label; return; }
+  if (currentLesson.id === "project") {
+    byId("draft-state").textContent = projectWorkspace.label;
+    return;
+  }
   byId("draft-state").textContent = editor.value === samples[currentLesson.sample].source ? "Sample" : "Edited · tab only";
 }
 
@@ -479,10 +541,14 @@ if (navigator.serial) navigator.serial.addEventListener("disconnect", () => {
   updateControls();
 });
 editor.addEventListener("input", () => {
+  if (workshopFiles.active) { workshopFiles.edited(); return; }
+  if (currentLesson.id === "project") { projectWorkspace.edited(); return; }
   drafts.set(currentLesson.id, editor.value);
   updateDraftState();
 });
 byId("reset-editor").addEventListener("click", () => {
+  if (workshopFiles.active) { workshopFiles.reset(); return; }
+  if (currentLesson.id === "project") { projectWorkspace.reset(); return; }
   if (editor.value !== samples[currentLesson.sample].source && !window.confirm("Discard the edited draft for this lesson and restore its sample? Download it first if you want to keep it.")) return;
   editor.value = samples[currentLesson.sample].source;
   drafts.delete(currentLesson.id);
@@ -494,7 +560,12 @@ byId("download-button").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = samples[currentLesson.sample].name;
+  let filename = workshopFiles.active?.name ?? samples[currentLesson.sample].name;
+  if (currentLesson.id === "project" && !workshopFiles.active) {
+    try { filename = normalizeProjectName(projectWorkspace.filename); }
+    catch { filename = "my_project.py"; }
+  }
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
@@ -587,10 +658,14 @@ byId("reset-device").addEventListener("click", async () => {
 
 async function runEditor() {
   if (!requireDevice() || transitioning || stopping) return;
+  if (workshopFiles.active && workshopFiles.active.kind !== "script") {
+    reportError(new Error("Select a lesson script to Run in RAM. Apply library or certificate edits with Write selected file to device."));
+    return;
+  }
   const source = editor.value;
-  const filename = samples[currentLesson.sample].name;
-  const needsBrowserClock = ["stocks", "weather"].includes(currentLesson.id);
-  const isMessage = currentLesson.id === "message";
+  const filename = workshopFiles.active?.name ?? (currentLesson.id === "project" ? projectWorkspace.filename : samples[currentLesson.sample].name);
+  const needsBrowserClock = ["04_stocks.py", "04_weather.py"].includes(filename);
+  const isMessage = filename === "04_desk_message.py";
   if (!source.trim()) {
     reportError(new Error("The editor is empty. Add Python code or reset the sample before running."));
     return;
@@ -641,6 +716,11 @@ async function runEditor() {
 
 byId("run-button").addEventListener("click", () => { void runEditor(); });
 editor.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s" && currentLesson.id === "project" && !workshopFiles.active) {
+    event.preventDefault();
+    projectWorkspace.save();
+    return;
+  }
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
     void runEditor();
@@ -665,7 +745,7 @@ byId("stop-button").addEventListener("click", async () => {
 });
 
 byId("save-main").addEventListener("click", () => {
-  if (!requireDevice()) return;
+  if (!requireDevice() || (workshopFiles.active && workshopFiles.active.kind !== "script")) return;
   const source = editor.value;
   if (!source.trim()) {
     reportError(new Error("The editor is empty; no boot script was saved."));
@@ -683,6 +763,24 @@ async function refreshWorkshopImports() {
   const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides', 'stocks', 'desk_message'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
   if (result?.stderr) throw new Error("Files were written, but reloading workshop libraries failed. Retry installation before running Snake.");
 }
+
+byId("write-workshop-file").addEventListener("click", () => {
+  if (!requireDevice() || job || transitioning || stopping) return;
+  const file = workshopFiles.active;
+  if (!file) return;
+  const { name, source, kind } = file;
+  const trustNote = kind === "certificate" ? " Replacing a trust certificate changes which HTTPS servers this board trusts." : "";
+  if (!window.confirm(`Overwrite ${name} on the device with this editor draft? Workshop imports will be refreshed. This does not run the file or create main.py.${trustNote} Advanced install or Reset device will replace it with the bundled version.`)) return;
+  void perform("save", `Writing ${name} to the device…`, async () => {
+    await connection.writeFile(name, source);
+    try {
+      await refreshWorkshopImports();
+    } catch (error) {
+      throw new Error(`${name} was written, but refreshing workshop imports failed. Reconnect and retry the write before running a lesson. ${error.message}`);
+    }
+    setStatus(`${name} written and workshop imports refreshed. No script was run; select your lesson script and Run in RAM when ready.`);
+  });
+});
 
 byId("install-button").addEventListener("click", () => {
   if (!requireDevice()) return;
@@ -751,7 +849,7 @@ byId("confirm-display").addEventListener("click", () => {
 });
 
 byId("show-solution").addEventListener("click", () => {
-  if (currentLesson.id !== "snake") return;
+  if (currentLesson.id !== "snake" || workshopFiles.active) return;
   if (editor.value !== samples.snake.source && editor.value !== snakeSolution
       && !window.confirm("Replace your Snake draft with the full solution? Download your work first if you want to keep it.")) return;
   editor.value = snakeSolution;
@@ -849,7 +947,7 @@ if (!serialAvailable) {
 }
 window.addEventListener("beforeunload", (event) => {
   const hasEdits = [...drafts].some(([id, source]) => source !== samples[lessons.find((lesson) => lesson.id === id).sample].source);
-  if (job || hasEdits || deskMessage.connected) {
+  if (job || hasEdits || deskMessage.connected || projectWorkspace.dirty || workshopFiles.dirty) {
     event.preventDefault();
     event.returnValue = "";
   }

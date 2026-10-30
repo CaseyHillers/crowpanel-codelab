@@ -313,3 +313,12 @@ body:has(.noscript-course) .shell, body:has(.noscript-course) .topbar { display:
 #desk-message-text { display: block; width: 100%; resize: vertical; min-height: 100px; padding: 10px; font: inherit; line-height: 1.5; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
 
 .archive-title { margin: 24px 12px 6px; font-size: 14px; font-weight: 600; color: var(--muted); }
+
+.project-files { margin-bottom: 16px; }
+.project-files label { display: block; font-weight: 600; margin: 12px 0 6px; }
+.project-files input, .project-files select { width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--control); border-radius: 4px; color: var(--text); background: var(--surface); font: inherit; }
+.project-files .connection-actions { margin-top: 12px; }
+
+.workshop-file-picker { margin-bottom: 16px; }
+.workshop-file-picker label { display: block; font-weight: 600; margin-bottom: 6px; }
+.workshop-file-picker select { width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--control); border-radius: 4px; color: var(--text); background: var(--surface); font: inherit; }

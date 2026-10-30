@@ -19,7 +19,7 @@ function fixture(lesson = "stocks", now = new Date("2026-10-31T15:16:17Z")) {
   const calls = [];
   const errors = [];
   const output = [];
-  const sandbox = {
+  const sandbox = { workshopFiles: { active: null, dirty: false },
     editor: { value: "print('learner draft')\n" },
     currentLesson: { id: lesson, sample: lesson },
     samples: { stocks: { name: "04_stocks.py" }, snake: { name: "02_snake.py" }, weather: { name: "04_weather.py" }, message: { name: "04_desk_message.py" } },

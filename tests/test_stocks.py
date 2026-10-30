@@ -143,7 +143,7 @@ class StocksExampleTests(unittest.TestCase):
         output = self.run_sample()
         self.assertEqual(self.operations.mock_calls[:2], [
             call.connect("Guest-AccessNG", "", timeout=15),
-            call.fetch_quote(),
+            call.fetch_quote(timeout=30),
         ])
         self.operations.sync_time.assert_not_called()
         self.operations.CrowPanel.assert_called_once_with(controller="jd79661")

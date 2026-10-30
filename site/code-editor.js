@@ -112,7 +112,11 @@ export function createCodeEditor(textarea) {
     },
     setAttribute(name, value) {
       textarea.setAttribute(name, value);
-      attributes[name] = String(value);
+      const nextValue = String(value);
+      // Input listeners can update status while CodeMirror is dispatching.
+      // Do not start a nested editor update for an unchanged label.
+      if (attributes[name] === nextValue) return;
+      attributes[name] = nextValue;
       view.dispatch({ effects: contentAttributes.reconfigure(EditorView.contentAttributes.of({ ...attributes })) });
     },
     addEventListener(type, callback, options) {

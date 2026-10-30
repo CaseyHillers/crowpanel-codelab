@@ -30,15 +30,15 @@ def _timeout_ms(timeout):
     return int(timeout * 1000)
 
 
-def _remaining(started, timeout_ms):
+def _remaining(started, timeout_ms, phase="operation"):
     remaining = timeout_ms - time.ticks_diff(time.ticks_ms(), started)
     if remaining <= 0:
-        raise OSError("operation timed out")
+        raise OSError(phase + " timed out")
     return remaining
 
 
-def _pause(started, timeout_ms):
-    time.sleep_ms(min(20, _remaining(started, timeout_ms)))
+def _pause(started, timeout_ms, phase="operation"):
+    time.sleep_ms(min(20, _remaining(started, timeout_ms, phase)))
 
 
 def _require_clock():
@@ -96,17 +96,19 @@ def _would_block(error):
 
 def _write_all(stream, data, started, timeout_ms):
     offset = 0
+    # MicroPython defers the TLS handshake until this first read/write.
+    phase = "TLS handshake/request write"
     while offset < len(data):
-        _remaining(started, timeout_ms)
+        _remaining(started, timeout_ms, phase)
         try:
             count = stream.write(data[offset:])
         except OSError as error:
             if not _would_block(error):
                 raise
             count = None
-        _remaining(started, timeout_ms)
+        _remaining(started, timeout_ms, phase)
         if count is None:
-            _pause(started, timeout_ms)
+            _pause(started, timeout_ms, phase)
         elif count <= 0 or count > len(data) - offset:
             raise OSError("HTTPS write failed")
         else:
@@ -115,17 +117,17 @@ def _write_all(stream, data, started, timeout_ms):
 
 def _read(stream, count, started, timeout_ms):
     while True:
-        _remaining(started, timeout_ms)
+        _remaining(started, timeout_ms, "HTTPS response read")
         try:
             chunk = stream.read(count)
         except OSError as error:
             if not _would_block(error):
                 raise
             chunk = None
-        _remaining(started, timeout_ms)
+        _remaining(started, timeout_ms, "HTTPS response read")
         if chunk is not None:
             return chunk
-        _pause(started, timeout_ms)
+        _pause(started, timeout_ms, "HTTPS response read")
 
 
 def _parse_headers(headers):
@@ -242,7 +244,7 @@ def _fetch_json(host, path, cafile, timeout, current_conditions):
     context.verify_mode = ssl.CERT_REQUIRED
     context.load_verify_locations(cafile=cafile)
     addresses = socket.getaddrinfo(host, 443, socket.AF_INET, socket.SOCK_STREAM)
-    _remaining(started, timeout_ms)
+    _remaining(started, timeout_ms, "DNS resolution")
     if not addresses:
         raise OSError("weather hostname did not resolve")
     family, kind, protocol, _, address = addresses[0]
@@ -252,7 +254,7 @@ def _fetch_json(host, path, cafile, timeout, current_conditions):
         raw = socket.socket(family, kind, protocol)
         raw.settimeout(_remaining(started, timeout_ms) / 1000)
         raw.connect(address)
-        _remaining(started, timeout_ms)
+        _remaining(started, timeout_ms, "TCP connection")
         raw.setblocking(False)
         stream = context.wrap_socket(
             raw, server_hostname=host, do_handshake_on_connect=False,

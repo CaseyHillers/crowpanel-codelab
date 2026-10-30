@@ -22,6 +22,7 @@
       <aside class="sidebar" id="course-nav" aria-label="Course navigation">
         <p class="sidebar-heading">Your workshop</p>
         <nav aria-label="Lessons"><ol id="lesson-list" class="lesson-list"></ol></nav>
+        <a id="nav-project" class="appendix-link" href="#project">Your project · Python editor</a>
         <nav aria-labelledby="archived-title"><h2 id="archived-title" class="archive-title">Archived</h2><ol id="archived-lesson-list" class="lesson-list"></ol></nav>
         <a id="nav-appendix" class="appendix-link" href="#appendix">Appendix · Hardware &amp; 3D prints</a>
         <p class="sidebar-note">Your board. Your code.<br>No build server needed.</p>
@@ -118,11 +119,22 @@
             </section>
             <section class="editor-panel" aria-labelledby="editor-title">
               <div class="section-heading"><h2 id="editor-title">Python editor</h2><span id="draft-state">Sample</span></div>
+              <div class="workshop-file-picker"><label for="workshop-file-select">Workshop files</label><select id="workshop-file-select" aria-describedby="workshop-file-help"></select><p id="workshop-file-help" class="help">Bundled workshop source, not a live device file listing. File edits stay in this tab; download them to keep a copy.</p></div>
+              <section id="project-files" class="project-files" aria-label="Your Python files" hidden>
+                <label for="project-select">Saved projects</label>
+                <select id="project-select"><option value="">New project (not saved)</option></select>
+                <label for="project-filename">Python filename</label>
+                <input id="project-filename" type="text" value="my_project.py" maxlength="64" spellcheck="false" autocomplete="off" aria-describedby="project-storage-help">
+                <div class="connection-actions"><button id="new-project" type="button">New project</button><button id="save-project" type="button">Save in browser</button><button id="delete-project" class="danger" type="button" disabled>Delete saved project…</button></div>
+                <p id="project-storage-help" class="help">Explicit save · this browser only · no passwords or secrets. Download a .py copy to keep your work if site data is cleared.</p>
+                <p id="project-save-status" class="help" role="status">Not saved in this browser yet.</p>
+                <p id="project-save-error" class="action-error" role="alert" hidden></p>
+              </section>
               <div class="file-line"><span id="editor-filename">01_mac.py</span><button id="show-solution" class="text-button" type="button" hidden>Show full solution</button><button id="reset-editor" class="text-button" type="button">Reset sample</button></div>
               <label class="sr-only" for="code-editor">Python source for the current lesson</label>
               <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-describedby="editor-help"></textarea>
               <p id="editor-help" class="help editor-help">Ctrl/⌘ + Enter to run · Tab moves focus · Edits stay in this tab; download to keep them.</p>
-              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="download-button" type="button">Download .py</button></div>
+              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="download-button" type="button">Download .py</button><button id="write-workshop-file" type="button" data-device hidden>Write selected file to device…</button></div>
               <details id="project-prompts" class="save-details"><summary>Make something new with Codex</summary>
                 <p>Describe your idea. Copy a hardware-aware prompt into Codex, then paste its Python into this editor. Review it before running; this site never sends code to an AI service.</p>
                 <label for="project-idea">What should your board do?</label>
@@ -131,7 +143,7 @@
                 <label class="sr-only" for="project-codex-prompt">Generated Codex coding prompt</label><textarea id="project-codex-prompt" rows="9" readonly spellcheck="false"></textarea>
                 <p>Don’t include Wi-Fi passwords, private data, or corporate secrets in your idea or prompts. Built-in screen text is ASCII; slow e-paper refreshes are normal.</p>
               </details>
-              <details class="save-details"><summary>Run automatically on boot</summary><p>Saving as <code>main.py</code> overwrites that file and runs this program on every reset. Keep USB access so you can stop it with Ctrl-C.</p><button id="save-main" type="button" data-device>Save as main.py…</button></details>
+              <details id="boot-tools" class="save-details"><summary>Run automatically on boot</summary><p>Saving as <code>main.py</code> overwrites that file and runs this program on every reset. Keep USB access so you can stop it with Ctrl-C.</p><button id="save-main" type="button" data-device>Save as main.py…</button></details>
             </section>
             <section id="desk-message-tools" class="desk-message-tools" aria-labelledby="desk-message-title" hidden>
               <h2 id="desk-message-title">Send a message</h2>

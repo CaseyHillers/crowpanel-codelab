@@ -16,7 +16,8 @@ WIFI_PASSWORD = ""
 print("Connecting to Wi-Fi (credentials hidden)...")
 station = connect(WIFI_SSID, WIFI_PASSWORD, timeout=15)
 print("Fetching ARM quote over verified HTTPS; no NTP...")
-quote = fetch_quote()
+# Allow a bounded 30 seconds for DNS, connection, TLS and the response together.
+quote = fetch_quote(timeout=30)
 quote_minute = format_quote_time(quote)
 
 panel = CrowPanel(controller="jd79661")

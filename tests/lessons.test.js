@@ -196,7 +196,7 @@ test("inline open Wi-Fi defaults disclose private code exposure without weakenin
   assert.match(samples.stocks.source, /^WIFI_SSID\s*=\s*"Guest-AccessNG"$/m);
   assert.match(samples.stocks.source, /^WIFI_PASSWORD\s*=\s*""$/m);
   assert.doesNotMatch(samples.stocks.source, /from wifi_config import/);
-  assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_quote\(\)/);
+  assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_quote\(timeout=30\)/);
 
   assert.equal(lessonById.weather.archived, true);
   assert.equal(lessonById.stocks.archived, true);

@@ -407,7 +407,7 @@ class WeatherTests(unittest.TestCase):
 
     def test_stalled_and_slow_trickle_requests_share_one_deadline(self):
         self.stream.read.side_effect = lambda count: None
-        with self.assertRaises(OSError):
+        with self.assertRaisesRegex(OSError, "HTTPS response read timed out"):
             self.weather.fetch_weather(timeout=0.1)
         self.assert_closed()
         self.stream.read.side_effect = self.read
@@ -420,8 +420,24 @@ class WeatherTests(unittest.TestCase):
     def test_stalled_tls_handshake_or_write_hits_deadline_and_closes(self):
         self.stream.write.side_effect = None
         self.stream.write.return_value = None
-        with self.assertRaises(OSError):
+        started = self.clock.ticks_ms()
+        with self.assertRaisesRegex(OSError, "TLS handshake/request write timed out"):
             self.weather.fetch_weather(timeout=0.1)
+        self.assertEqual(self.clock.ticks_diff(self.clock.ticks_ms(), started), 100)
+        self.assert_closed()
+
+    def test_tls_wait_and_response_read_share_one_deadline(self):
+        self.response()
+        normal_write = self.write
+        def delayed_write(data):
+            self.clock.sleep_ms(75)
+            return normal_write(data)
+        self.stream.write.side_effect = delayed_write
+        self.stream.read.side_effect = lambda count: None
+        started = self.clock.ticks_ms()
+        with self.assertRaisesRegex(OSError, "HTTPS response read timed out"):
+            self.weather.fetch_weather(timeout=0.1)
+        self.assertEqual(self.clock.ticks_diff(self.clock.ticks_ms(), started), 100)
         self.assert_closed()
 
     def test_cleanup_still_closes_raw_when_tls_close_fails(self):

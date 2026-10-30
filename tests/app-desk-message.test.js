@@ -32,7 +32,7 @@ function fixture({ available = true } = {}) {
     async send() {}
     disconnect() { this.connected = false; states("disconnected"); }
   }
-  const sandbox = {
+  const sandbox = { workshopFiles: { active: null, dirty: false },
     byId, DeskMessageConnection: FakeConnection, layoutMessage,
     navigator: { bluetooth: available ? {} : undefined }, isSecureContext: true,
     bluetoothConnecting: false, job: { kind: "run" },
@@ -133,7 +133,7 @@ test("course paging keeps archived network lessons outside the core sequence", (
   };
   const coreLessons = [{ id: "mac" }, { id: "message" }, { id: "finish" }];
   const archivedLessons = [{ id: "stocks", archived: true }, { id: "weather", archived: true }];
-  const sandbox = { byId, coreLessons, archivedLessons, currentLesson: coreLessons[1], location: { hash: "message" }, usbDetected: true };
+  const sandbox = { workshopFiles: { active: null, dirty: false }, byId, coreLessons, archivedLessons, currentLesson: coreLessons[1], location: { hash: "message" }, usbDetected: true };
   runInNewContext(section("const lessonSequence =", "\n",), sandbox);
   runInNewContext(section('byId("previous-lesson").addEventListener', '\nbyId("lesson-content").addEventListener'), sandbox);
   byId("next-lesson").click();
@@ -153,7 +153,7 @@ test("leaving the message lesson releases Bluetooth, including the hardware appe
   for (const route of ["snake", "appendix", "message"]) {
     let disconnects = 0;
     const message = { id: "message" };
-    const sandbox = {
+    const sandbox = { workshopFiles: { active: null, dirty: false },
       currentLesson: message, drafts: new Map(), editor: { value: "learner receiver" },
       location: { hash: `#${route}` }, lessons: [{ id: "welcome" }, message, { id: "snake" }],
       deskMessage: { disconnect: () => { disconnects += 1; } },
@@ -169,9 +169,9 @@ test("leaving the message lesson releases Bluetooth, including the hardware appe
 test("page exit disconnects Bluetooth and an active Bluetooth session prompts before unload", () => {
   const handlers = {};
   let disconnects = 0;
-  const sandbox = {
+  const sandbox = { workshopFiles: { active: null, dirty: false },
     window: { addEventListener: (event, handler) => { handlers[event] = handler; } },
-    drafts: new Map(), samples: {}, lessons: [], job: null,
+    drafts: new Map(), samples: {}, lessons: [], job: null, projectWorkspace: { dirty: false },
     deskMessage: { connected: true, disconnect: () => { disconnects += 1; } },
   };
   runInNewContext(section('window.addEventListener("beforeunload"', '\nrenderLesson();'), sandbox);
