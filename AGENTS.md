@@ -104,6 +104,11 @@
   or auto-switch protocols after a timeout. JD refresh must assert BUSY before
   completion; a permanently idle BUSY pin is not success.
 - `device/weather.py`: bounded, certificate-verified HTTPS for Sabre Springs.
+  Weather lesson Run in RAM seeds machine.RTC from computer UTC over USB before
+  running editor code. The sample does not call NTP; sync_time remains optional
+  for standalone use where allowed. Preserve TLS/stale-clock validation, UTC
+  conversion, editable drafts and no clock writes to device files. Standalone
+  downloads/main.py need RTC setup separately after loss of power.
 - `device/examples/04_weather.py`: editable inline `WIFI_SSID = "Guest-AccessNG"`
   and `WIFI_PASSWORD = ""` defaults for open workshop Wi-Fi; no wifi_config.py
   dependency. There is no separate app Wi-Fi form. Private replacements are

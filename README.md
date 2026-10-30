@@ -303,7 +303,7 @@ For terminal use: `.venv/bin/mpremote connect /dev/cu.wchusbserial21410 run devi
 
 - `device/crowpanel.py`: SSD1680/JD79661 full-refresh presets, 250 × 122 landscape.
 - `device/slides.py`: original Crow, Circuit, and Summit bitmaps.
-- `device/weather.py`: bounded Wi-Fi/NTP/HTTPS operations; fails closed on TLS
+- `device/weather.py`: bounded Wi-Fi/HTTPS operations and optional NTP helper; fails closed on TLS
   errors, unsupported TLS configuration, stale clock, or malformed responses.
 - `device/weather_ca.pem`: ISRG Root X2 trust anchor. The Open-Meteo chain was
   verified against this root on October 27, 2026. Renew the trust material if the
@@ -324,8 +324,14 @@ access permits reading device files; this is not a secrets vault. Saving
 
 Wi-Fi examples use 2.4 GHz Personal/open networks. Enterprise 802.1X and captive
 portal login are not implemented. Registering a MAC alone does not guarantee
-corporate-network compatibility. NTP and the HTTPS endpoint must be reachable;
-an approved workshop hotspot may be simpler. HTTPS socket operations are bounded;
+corporate-network compatibility. The Weather lesson's **Run in RAM** sets the
+board's UTC RTC from the computer over USB before executing the editor source.
+The sample does not use NTP, so guest networks may block it. Keep the computer's
+clock correct; HTTPS certificate and stale-clock checks remain enabled. No
+firmware or library reinstall is needed for browser clock setting. Downloaded
+scripts and `main.py` need an accurate RTC set separately, again after loss of
+power; `weather.sync_time()` remains optional on networks that allow NTP.
+The HTTPS endpoint must still be reachable. HTTPS socket operations are bounded;
 DNS resolution uses the firmware resolver's own timeout. Large/chunked responses
 are rejected rather than accepted unsafely. Weather data is for Sabre Springs,
 San Diego (32.9528, -117.094), with Fahrenheit, mph, and Los Angeles local time.
