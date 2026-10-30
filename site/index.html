@@ -22,6 +22,7 @@
       <aside class="sidebar" id="course-nav" aria-label="Course navigation">
         <p class="sidebar-heading">Your workshop</p>
         <nav aria-label="Lessons"><ol id="lesson-list" class="lesson-list"></ol></nav>
+        <nav aria-labelledby="archived-title"><h2 id="archived-title" class="archive-title">Archived</h2><ol id="archived-lesson-list" class="lesson-list"></ol></nav>
         <a id="nav-appendix" class="appendix-link" href="#appendix">Appendix · Hardware &amp; 3D prints</a>
         <p class="sidebar-note">Your board. Your code.<br>No build server needed.</p>
       </aside>
@@ -99,8 +100,8 @@
               </section>
               <p class="help">✅ means a press and release was received. Confirm the physical party screen to unlock Next. Stop ends the check early.</p>
               <details><summary>Advanced: install libraries without running the demo</summary>
-              <p>Connect device first. This only copies the six workshop files.</p>
-              <button id="install-button" type="button" data-device>Install 6 workshop files</button>
+              <p>Connect device first. This only copies the seven workshop files.</p>
+              <button id="install-button" type="button" data-device>Install 7 workshop files</button>
               <p id="install-status" class="help" role="status">Not installed in this browser session.</p>
               </details>
             </section>
@@ -132,6 +133,16 @@
               </details>
               <details class="save-details"><summary>Run automatically on boot</summary><p>Saving as <code>main.py</code> overwrites that file and runs this program on every reset. Keep USB access so you can stop it with Ctrl-C.</p><button id="save-main" type="button" data-device>Save as main.py…</button></details>
             </section>
+            <section id="desk-message-tools" class="desk-message-tools" aria-labelledby="desk-message-title" hidden>
+              <h2 id="desk-message-title">Send a message</h2>
+              <p>Run the receiver over USB first. Choose the Desk- name shown on your physical board, then send a message over Bluetooth.</p>
+              <label for="desk-message-text">Message for your desk</label>
+              <textarea id="desk-message-text" rows="4" maxlength="112" spellcheck="true" aria-describedby="desk-message-help">Hello from my desk!</textarea>
+              <p id="desk-message-help" class="help">Use plain English letters, numbers, punctuation and line breaks. Up to 112 ASCII characters, wrapping to four lines of 28. Emoji need a custom font. No Wi-Fi or internet needed.</p>
+              <div class="connection-actions"><button id="desk-message-connect" type="button">Choose Bluetooth board…</button><button id="desk-message-send" class="primary" type="button" disabled>Send message</button><button id="desk-message-disconnect" type="button" disabled>Disconnect Bluetooth</button></div>
+              <p id="desk-message-status" class="help" role="status">Run the receiver, then choose your Bluetooth board.</p>
+              <p id="desk-message-error" class="action-error" role="alert" hidden></p>
+            </section>
             <section class="console-panel" aria-labelledby="console-title">
               <div class="section-heading"><h2 id="console-title">Serial console</h2><div class="console-actions"><button id="copy-console" class="text-button" type="button" aria-label="Copy serial output">Copy</button><button id="clear-console" class="text-button" type="button">Clear</button></div></div>
               <pre id="console-output" tabindex="0" aria-label="Device output">Connect a board to see device output here.
@@ -152,10 +163,11 @@ No code runs automatically.</pre>
         <h2>2. Host setup · 10 minutes</h2><p>Use desktop Chrome or Edge on HTTPS or localhost. Check the cable and serial port; install the correct USB driver only if needed. Leave factory firmware intact.</p>
         <h2>3. Board check · 20 minutes</h2><p>Test the factory display before erasing anything. If blank, stop and ask for help. With explicit consent, install ESP32-S3 OCTSPIRAM MicroPython; skip flashing if already installed. Run the five-input check, then confirm you see the party screen.</p>
         <h2>4. Snake · 30 minutes</h2><p>Fill the input-handler TODOs in 02_snake.py. Press starts or replays after game over; Snake moves automatically. Up ↺ counterclockwise -1 (12→9→6→3), Down ↻ clockwise +1 (12→3→6→9), Menu resets to ready and Back exits. Menu → Press also plays again. A wall or body collision can end a game; there is no 20-second cutoff. After the five-minute session ends, click Run in RAM again. A full solution is available. Square 8×8 grid with 10px cells (80px inside, ~82px with border) left on the 250×122 screen; score, status and instructions right. Food is chosen center-first, initially one cell ahead when adjacent to center. Default STEP_MS=5000 is 5 seconds of stable viewing time after each completed refresh; physical full refresh can be slower and takes additional time. One step per completed frame (one cell), no catch-up bursts. Allow one 90-degree steering turn per movement frame; extra turns queue for following frames. No smooth, fast or partial refresh promised. For optional show(on_wait=...) input collection during blocking waits, reinstall the latest workshop libraries via Board check → advanced install, not reflash.</p>
-        <h2>5. Station MAC · 5 minutes</h2><p>Run 01_mac.py. Copy this board’s station MAC and add it at <a href="http://go/wifi-setup">go/wifi-setup</a> to register the device for Guest-AccessNG. Reading the MAC does not require joining a network.</p>
+        <h2>5. Station MAC · 5 minutes</h2><p>Run 01_mac.py. Copy this board’s station MAC and add it at <a href="http://go/wifi-setup">go/wifi-setup</a> to register the device for Guest-AccessNG. Reading the MAC does not require joining a network. Registration is not needed for the Bluetooth project.</p>
         <h2>6. Slideshow · 15 minutes</h2><p>Run 03_slideshow.py. Use Up and Down to cycle images, then stop the program.</p>
-        <h2>7. ARM stock price · 20 minutes</h2><p>Register your station MAC with IT for the open Guest-AccessNG network. Edit WIFI_SSID and WIFI_PASSWORD in 04_stocks.py if needed. Run in RAM from this lesson sets UTC from your computer over USB; no NTP required. Keep your computer’s clock correct and TLS verification enabled. Fetch NASDAQ:ARM once from TradingView and show the last available one-minute quote in USD with its UTC minute timestamp. Quotes are delayed by 15 minutes, not real-time, and may be from an earlier session when markets are closed. Existing learners: Board check → Advanced install updates the stock libraries and certificate; no firmware reflash.</p>
+        <h2>7. Send a message · 20 minutes</h2><p>Run 04_desk_message.py in RAM over USB, then use the browser’s Bluetooth controls to choose the Desk- name on your physical screen. Send a short ASCII message and wait for the e-paper refresh. No Wi-Fi or internet needed. The receiver ends after five minutes; Run in RAM again when ready. Use Stop or Back to end it early. If Web Bluetooth is unavailable, edit START_MESSAGE and set USE_BLUETOOTH=False to draw once over USB.</p>
         <h2>8. Next projects &amp; cleanup · 10 minutes</h2><p>Try notifications, a calendar viewer or a battery-powered desk display. Download drafts before closing. Remove private credentials before sharing, then stop and disconnect. Optionally reinstall the matching factory demo using <a href="https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/factory_firmware/readme.md">Elecrow’s instructions</a>; this replaces MicroPython and erases workshop files and saved credentials.</p>
+        <h2>Archived projects</h2><p>Outside the two-hour course: Weather and ARM stock price use Wi-Fi and verified HTTPS. Their Run in RAM actions set UTC from your computer over USB; no NTP required. Keep your computer’s clock correct. Corporate networks may restrict their connections. Stock quotes are delayed by 15 minutes and show the last available one-minute quote with its UTC timestamp.</p>
       </section>
     </noscript>
     <script type="module" src="./app.js"></script>

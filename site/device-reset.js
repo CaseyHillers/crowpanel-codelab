@@ -10,6 +10,6 @@ export async function resetDevice(connection, { clearSource, files, onPhase = ()
   onPhase("Reinstalling workshop files…");
   await connection.writeFiles(files);
   onPhase("Checking workshop imports…");
-  const checked = await connection.execute("import crowpanel, weather, slides, stocks\n", { timeoutMs: 10000 });
+  const checked = await connection.execute("import crowpanel, weather, slides, stocks, desk_message\n", { timeoutMs: 10000 });
   if (checked.stderr) throw new Error("Workshop import check failed. Retry Reset device before running a lesson.");
 }

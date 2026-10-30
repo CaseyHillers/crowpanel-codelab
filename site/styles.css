@@ -305,3 +305,11 @@ body:has(.noscript-course) .shell, body:has(.noscript-course) .topbar { display:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+/* Bluetooth companion uses the same form controls as the editor workspace. */
+.desk-message-tools { padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; }
+.desk-message-tools h2 { margin: 0 0 12px; font-size: 16px; }
+.desk-message-tools label { display: block; margin: 14px 0 6px; font-weight: 600; }
+#desk-message-text { display: block; width: 100%; resize: vertical; min-height: 100px; padding: 10px; font: inherit; line-height: 1.5; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+
+.archive-title { margin: 24px 12px 6px; font-size: 14px; font-weight: 600; color: var(--muted); }

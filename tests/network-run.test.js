@@ -22,7 +22,7 @@ function fixture(lesson = "stocks", now = new Date("2026-10-31T15:16:17Z")) {
   const sandbox = {
     editor: { value: "print('learner draft')\n" },
     currentLesson: { id: lesson, sample: lesson },
-    samples: { stocks: { name: "04_stocks.py" }, snake: { name: "02_snake.py" } },
+    samples: { stocks: { name: "04_stocks.py" }, snake: { name: "02_snake.py" }, weather: { name: "04_weather.py" }, message: { name: "04_desk_message.py" } },
     transitioning: false, stopping: false, job: null, runTask: null,
     stopRequested: false, receivedOutput: 0,
     requireDevice: () => true,
@@ -34,6 +34,7 @@ function fixture(lesson = "stocks", now = new Date("2026-10-31T15:16:17Z")) {
       },
       stop: async () => {},
     },
+    deskMessage: { disconnect: () => calls.push({ disconnect: true }) },
     withBrowserClock: source => withBrowserClock(source, now),
     updateControls: () => {},
     reportError: error => { errors.push(error); },
@@ -102,5 +103,47 @@ test("navigating while Stop finishes cannot change whether the captured draft re
     assert.equal(setup.calls[0].source.includes("RTC().datetime"), initialLesson === "stocks");
     assert.ok(setup.calls[0].source.endsWith(draft));
     assert.doesNotMatch(setup.calls[0].source, /new lesson draft/);
+  }
+});
+
+
+test("archived Weather receives computer UTC without requiring NTP", async () => {
+  const setup = fixture("weather");
+  await setup.run();
+  assert.equal(setup.errors.length, 0);
+  assert.equal(setup.calls.length, 1);
+  assert.match(setup.calls[0].source, /RTC\(\)\.datetime/);
+});
+
+test("message receiver disconnects Bluetooth when execution completes or fails", async () => {
+  for (const failure of [false, true]) {
+    const setup = fixture("message");
+    const running = deferred();
+    setup.sandbox.connection.execute = async (source) => {
+      setup.calls.push({ source });
+      await running.promise;
+      if (failure) throw new Error("receiver interrupted");
+      return { stdout: "", stderr: "" };
+    };
+    const pending = setup.run();
+    assert.equal(setup.calls.length, 1);
+    assert.equal(setup.calls[0].source, setup.sandbox.editor.value);
+    running.resolve();
+    await pending;
+    assert.equal(setup.calls.filter(call => call.disconnect).length, 1);
+    assert.equal(setup.errors.length, failure ? 1 : 0);
+  }
+});
+
+test("receiver cleanup follows the captured lesson when navigation changes during execution", async () => {
+  for (const initialLesson of ["message", "snake"]) {
+    const setup = fixture(initialLesson);
+    const running = deferred();
+    setup.sandbox.connection.execute = () => running.promise;
+    const pending = setup.run();
+    setup.sandbox.currentLesson = { id: initialLesson === "message" ? "snake" : "message" };
+    running.resolve({ stdout: "", stderr: "" });
+    await pending;
+    assert.equal(setup.calls.filter(call => call.disconnect).length, initialLesson === "message" ? 1 : 0);
   }
 });

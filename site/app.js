@@ -8,6 +8,7 @@ import { checkUsbDevice, detectHostOs } from "./usb-check.js";
 import { createProjectPrompt } from "./codex-prompts.js";
 import { createStarterInputs } from "./starter-inputs.js";
 import { resetDevice } from "./device-reset.js";
+import { DeskMessageConnection, layoutMessage } from "./desk-message.js";
 import { withBrowserClock } from "./run-clock.js";
 import resetFilesSource from "../device/diagnostics/reset_files.py?raw";
 import starterSource from "../device/examples/00_board_check.py?raw";
@@ -18,12 +19,16 @@ import slidesSource from "../device/slides.py?raw";
 import weatherCa from "../device/weather_ca.pem?raw";
 import stocksSource from "../device/stocks.py?raw";
 import stocksCa from "../device/stocks_ca.pem?raw";
+import deskMessageSource from "../device/desk_message.py?raw";
 
 const byId = (id) => document.getElementById(id);
 const hardwareStory = createHardwareStory(byId("hardware-intro"), byId("story-viewer"), byId("story-status"));
 const editor = createCodeEditor(byId("code-editor"));
 const consoleOutput = byId("console-output");
 const drafts = new Map();
+const coreLessons = lessons.filter(lesson => !lesson.archived);
+const archivedLessons = lessons.filter(lesson => lesson.archived);
+const lessonSequence = () => currentLesson?.archived ? archivedLessons : coreLessons;
 const libraryFiles = [
   { name: "crowpanel.py", data: panelSource },
   { name: "weather.py", data: weatherSource },
@@ -31,9 +36,11 @@ const libraryFiles = [
   { name: "weather_ca.pem", data: weatherCa },
   { name: "stocks.py", data: stocksSource },
   { name: "stocks_ca.pem", data: stocksCa },
+  { name: "desk_message.py", data: deskMessageSource },
 ];
 const serialAvailable = Boolean(globalThis.isSecureContext && navigator.serial);
 let currentLesson;
+let bluetoothConnecting = false;
 let job = null;
 let runTask = null;
 let transitioning = false;
@@ -158,6 +165,62 @@ const connection = new MicroPythonConnection({
   },
 });
 
+const bluetoothAvailable = Boolean(globalThis.isSecureContext && navigator.bluetooth);
+const deskMessage = new DeskMessageConnection({
+  onState(state) {
+    bluetoothConnecting = state === "connecting";
+    if (state === "disconnected") {
+      byId("desk-message-status").textContent = "Bluetooth disconnected. Run the receiver and choose your board to send again.";
+    }
+    updateMessageControls();
+  },
+});
+
+function updateMessageControls() {
+  let valid = true;
+  try { layoutMessage(byId("desk-message-text").value); } catch { valid = false; }
+  byId("desk-message-connect").disabled = !bluetoothAvailable || bluetoothConnecting || deskMessage.connected;
+  byId("desk-message-send").disabled = !valid || !deskMessage.connected || deskMessage.sending;
+  byId("desk-message-disconnect").disabled = !bluetoothConnecting && !deskMessage.connected;
+  byId("desk-message-text").disabled = deskMessage.sending;
+  if (!bluetoothAvailable) byId("desk-message-status").textContent = "Web Bluetooth is unavailable here. Use desktop Chrome or Edge on HTTPS or localhost, enable Bluetooth, or follow the USB fallback in the lesson. Managed browser policy may block Bluetooth.";
+}
+
+function reportMessageError(error) {
+  byId("desk-message-error").textContent = error?.name === "NotFoundError"
+    ? "No Bluetooth board selected. Run the receiver, match its Desk name and try again."
+    : error?.message || "Bluetooth operation failed. Check the receiver and browser permissions.";
+  byId("desk-message-error").hidden = false;
+}
+
+byId("desk-message-text").addEventListener("input", () => {
+  byId("desk-message-error").hidden = true;
+  try { layoutMessage(byId("desk-message-text").value); }
+  catch (error) { reportMessageError(error); }
+  updateMessageControls();
+});
+byId("desk-message-connect").addEventListener("click", async () => {
+  byId("desk-message-error").hidden = true;
+  byId("desk-message-status").textContent = "Choose the Desk name shown on your physical display…";
+  try {
+    const name = await deskMessage.connect();
+    byId("desk-message-status").textContent = `Bluetooth connected to ${name}. Ready to send.`;
+  } catch (error) { reportMessageError(error); }
+  finally { updateMessageControls(); }
+});
+byId("desk-message-send").addEventListener("click", async () => {
+  byId("desk-message-error").hidden = true;
+  byId("desk-message-status").textContent = "Sending; waiting for the board’s slow full refresh…";
+  try {
+    await deskMessage.send(byId("desk-message-text").value);
+    byId("desk-message-status").textContent = "Board reports refresh complete. Check the message on your physical screen.";
+  } catch (error) {
+    byId("desk-message-status").textContent = "Message display not confirmed. Check the receiver before retrying.";
+    reportMessageError(error);
+  } finally { updateMessageControls(); }
+});
+byId("desk-message-disconnect").addEventListener("click", () => deskMessage.disconnect());
+
 function updateControls() {
   const busy = Boolean(job || transitioning || checkingUsb);
   for (const button of document.querySelectorAll("[data-device]")) {
@@ -178,9 +241,10 @@ function updateControls() {
   byId("firmware-file").disabled = job?.kind === "flash";
   updateVerification();
   if (byId("usb-check-button")) byId("usb-check-button").disabled = !serialAvailable || busy;
-  if (currentLesson) byId("next-lesson").disabled = lessons.indexOf(currentLesson) === lessons.length - 1
+  if (currentLesson) byId("next-lesson").disabled = lessonSequence().indexOf(currentLesson) === lessonSequence().length - 1
     || (currentLesson.id === "setup" && !usbDetected)
     || (currentLesson.id === "verify" && !boardVerified);
+  updateMessageControls();
 }
 
 async function perform(kind, label, action) {
@@ -220,14 +284,15 @@ function setNavOpen(open) {
 function renderLesson({ focus = false } = {}) {
   if (currentLesson) drafts.set(currentLesson.id, editor.value);
   const requestedId = location.hash.slice(1);
-  const id = ({ inputs: "verify", hello: "snake", weather: "stocks" })[requestedId] || requestedId;
+  const id = ({ inputs: "verify", hello: "snake" })[requestedId] || requestedId;
   const isAppendix = id === "appendix";
   const next = lessons.find((lesson) => lesson.id === id) || lessons[0];
+  if (currentLesson?.id === "message" && (next.id !== "message" || isAppendix)) deskMessage.disconnect();
   currentLesson = next;
   const sample = samples[next.sample];
   byId("lesson-title").textContent = isAppendix ? "Hardware & 3D prints" : next.title;
   byId("lesson-duration").hidden = isAppendix;
-  byId("lesson-duration").textContent = `${next.minutes} min`;
+  byId("lesson-duration").textContent = next.archived ? "Archived · outside the course" : `${next.minutes} min`;
   byId("lesson-summary").textContent = isAppendix ? "The full CAD explorer and optional desk-kit print files. Outside the timed course." : next.summary;
   const isWelcome = !isAppendix && next.id === "welcome";
   const isCode = !isAppendix && next.layout === "code";
@@ -269,10 +334,12 @@ function renderLesson({ focus = false } = {}) {
   editor.value = drafts.get(next.id) ?? sample.source;
   editor.setAttribute("aria-label", `Python source: ${sample.name}, ${next.title}`);
   byId("setup-tools").hidden = !isVerify;
+  byId("desk-message-tools").hidden = isAppendix || next.id !== "message";
   byId("show-solution").hidden = isAppendix || next.id !== "snake";
-  const index = lessons.indexOf(next);
+  const sequence = lessonSequence();
+  const index = sequence.indexOf(next);
   byId("previous-lesson").disabled = index === 0;
-  byId("next-lesson").disabled = index === lessons.length - 1;
+  byId("next-lesson").disabled = index === sequence.length - 1;
   for (const lesson of lessons) {
     const link = byId(`nav-${lesson.id}`);
     if (!isAppendix && lesson.id === next.id) link.setAttribute("aria-current", "step");
@@ -303,7 +370,7 @@ for (const lesson of lessons) {
   link.setAttribute("aria-label", `${lesson.navTitle}, ${lesson.minutes} minutes`);
   const number = document.createElement("span");
   number.className = "step-number";
-  number.textContent = String(lessons.indexOf(lesson) + 1);
+  number.textContent = lesson.archived ? "·" : String(coreLessons.indexOf(lesson) + 1);
   number.setAttribute("aria-hidden", "true");
   const title = document.createElement("span");
   title.textContent = lesson.navTitle;
@@ -319,7 +386,7 @@ for (const lesson of lessons) {
     }
   });
   item.append(link);
-  byId("lesson-list").append(item);
+  byId(lesson.archived ? "archived-lesson-list" : "lesson-list").append(item);
 }
 
 byId("nav-toggle").addEventListener("click", () => setNavOpen(byId("nav-toggle").getAttribute("aria-expanded") !== "true"));
@@ -335,12 +402,14 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("hashchange", () => renderLesson({ focus: true }));
 byId("previous-lesson").addEventListener("click", () => {
-  const previous = lessons[lessons.indexOf(currentLesson) - 1];
+  const sequence = lessonSequence();
+  const previous = sequence[sequence.indexOf(currentLesson) - 1];
   if (previous) location.hash = previous.id;
 });
 byId("next-lesson").addEventListener("click", () => {
   if (currentLesson.id === "setup" && !usbDetected) return;
-  const next = lessons[lessons.indexOf(currentLesson) + 1];
+  const sequence = lessonSequence();
+  const next = sequence[sequence.indexOf(currentLesson) + 1];
   if (next) location.hash = next.id;
 });
 byId("lesson-content").addEventListener("click", async (event) => {
@@ -520,7 +589,8 @@ async function runEditor() {
   if (!requireDevice() || transitioning || stopping) return;
   const source = editor.value;
   const filename = samples[currentLesson.sample].name;
-  const needsBrowserClock = currentLesson.id === "stocks";
+  const needsBrowserClock = ["stocks", "weather"].includes(currentLesson.id);
+  const isMessage = currentLesson.id === "message";
   if (!source.trim()) {
     reportError(new Error("The editor is empty. Add Python code or reset the sample before running."));
     return;
@@ -551,7 +621,12 @@ async function runEditor() {
     appendOutput(`\n[Run ${filename} in RAM]\n`);
     const outputBefore = receivedOutput;
     const runSource = needsBrowserClock ? withBrowserClock(source) : source;
-    const result = await connection.execute(runSource, { timeoutMs: 0 });
+    let result;
+    try {
+      result = await connection.execute(runSource, { timeoutMs: 0 });
+    } finally {
+      if (isMessage) deskMessage.disconnect();
+    }
     if (receivedOutput === outputBefore) appendOutput((result?.stdout || "") + (result?.stderr || ""));
     if (stopRequested) {
       setStatus("Script interrupted with Ctrl-C. No boot file was changed.");
@@ -605,7 +680,7 @@ byId("save-main").addEventListener("click", () => {
 
 byId("install-button").textContent = `Install ${libraryFiles.length} workshop files`;
 async function refreshWorkshopImports() {
-  const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides', 'stocks'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
+  const result = await connection.execute("import sys\nfor module_name in ('crowpanel', 'weather', 'slides', 'stocks', 'desk_message'):\n    if module_name in sys.modules:\n        del sys.modules[module_name]\n");
   if (result?.stderr) throw new Error("Files were written, but reloading workshop libraries failed. Retry installation before running Snake.");
 }
 
@@ -774,11 +849,12 @@ if (!serialAvailable) {
 }
 window.addEventListener("beforeunload", (event) => {
   const hasEdits = [...drafts].some(([id, source]) => source !== samples[lessons.find((lesson) => lesson.id === id).sample].source);
-  if (job || hasEdits) {
+  if (job || hasEdits || deskMessage.connected) {
     event.preventDefault();
     event.returnValue = "";
   }
 });
+window.addEventListener("pagehide", () => deskMessage.disconnect());
 renderLesson();
 updateControls();
 if (totalMinutes !== 120) reportError(new Error("The course duration data does not add up to two hours."));

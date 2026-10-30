@@ -25,11 +25,38 @@ const text = (html) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
 
 test("the course checks factory hardware before exercises and totals 120 minutes", () => {
   assert.deepEqual(Array.from(lessons, (lesson) => lesson.id), [
-    "welcome", "setup", "verify", "snake", "mac", "slideshow", "stocks", "finish",
+    "welcome", "setup", "verify", "snake", "mac", "slideshow", "message", "finish", "weather", "stocks",
   ]);
   assert.equal(totalMinutes, 120);
-  assert.equal(lessons.reduce((total, lesson) => total + lesson.minutes, 0), 120);
+  assert.equal(lessons.filter(lesson => !lesson.archived).reduce((total, lesson) => total + lesson.minutes, 0), 120);
   for (const lesson of lessons) assert.ok(Number.isInteger(lesson.minutes) && lesson.minutes > 0);
+});
+
+test("Bluetooth messaging replaces the online project and archives remain outside the timed course", async () => {
+  assert.deepEqual(Array.from(lessons.filter(lesson => !lesson.archived), lesson => lesson.id), [
+    "welcome", "setup", "verify", "snake", "mac", "slideshow", "message", "finish",
+  ]);
+  assert.deepEqual(Array.from(lessons.filter(lesson => lesson.archived), lesson => lesson.id), ["weather", "stocks"]);
+  assert.equal(lessonById.message.minutes, 20);
+  assert.equal(samples.message.name, "04_desk_message.py");
+  const content = text(lessonById.message.content);
+  assert.match(content, /Run in RAM.*Desk-.*Choose Bluetooth board/i);
+  assert.match(content, /same name.*physical display/i);
+  assert.match(content, /no Wi-Fi.*no internet/i);
+  assert.match(content, /five.minute.*Run in RAM.*again/i);
+  assert.match(content, /nearby.*private/i);
+  assert.match(content, /Stop.*end/i);
+  assert.match(content, /does not prove.*physical display/i);
+  assert.doesNotMatch(samples.message.source, /import network|sync_time\(\)|fetch_weather\(\)|fetch_quote\(\)/);
+  assert.match(text(lessonById.mac.content), /not needed.*Bluetooth/i);
+  const html = await readFile(new URL("../site/index.html", import.meta.url), "utf8");
+  for (const id of ["desk-message-tools", "desk-message-text", "desk-message-help", "desk-message-connect", "desk-message-send", "desk-message-disconnect", "desk-message-status", "desk-message-error"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /<label for="desk-message-text">/);
+  assert.match(html, /id="desk-message-text"[^>]*maxlength="112"/);
+  assert.match(html, /id="desk-message-status"[^>]*role="status"/);
+  assert.match(html, /id="desk-message-error"[^>]*role="alert"/);
 });
 
 test("every lesson resolves to a nonempty sample from an existing Python file", () => {
@@ -47,7 +74,7 @@ test("every lesson resolves to a nonempty sample from an existing Python file", 
 test("host preparation and verification stay separate from the code workspace", () => {
   assert.equal(lessonById.welcome.layout, undefined);
   for (const lessonId of ["setup", "verify", "finish"]) assert.equal(lessonById[lessonId].layout, "guide");
-  for (const lessonId of ["snake", "mac", "slideshow", "stocks"]) {
+  for (const lessonId of ["snake", "mac", "slideshow", "message", "weather", "stocks"]) {
     assert.equal(lessonById[lessonId].layout, "code");
     assert.equal(lessonById[lessonId].sample, lessonId);
   }
@@ -171,7 +198,8 @@ test("inline open Wi-Fi defaults disclose private code exposure without weakenin
   assert.doesNotMatch(samples.stocks.source, /from wifi_config import/);
   assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_quote\(\)/);
 
-  assert.equal(lessonById.weather, undefined);
+  assert.equal(lessonById.weather.archived, true);
+  assert.equal(lessonById.stocks.archived, true);
   assert.equal(lessonById.stocks.minutes, 20);
   assert.equal(samples.stocks.name, "04_stocks.py");
   assert.match(stocks, /ARM.*NASDAQ/i);
