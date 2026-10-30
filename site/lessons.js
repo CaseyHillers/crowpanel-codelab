@@ -71,10 +71,10 @@ export const lessons = [
   },
   {
     id: "mac", title: "Get your Wi-Fi pass", navTitle: "Station MAC", minutes: 5, sample: "mac", layout: "code",
-    summary: "Run → copy the station MAC → give it to IT.",
+    summary: "Run → copy the station MAC → register your device.",
     content: `
-      <div class="lesson-flow" aria-label="Network registration steps"><span>▶ Run</span><span>→</span><span>Copy MAC</span><span>→</span><span>Give to IT</span></div>
-      <p>IT registers this board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
+      <div class="lesson-flow" aria-label="Network registration steps"><span>▶ Run</span><span>→</span><span>Copy MAC</span><span>→</span><span>Register device</span></div>
+      <p>Run the code and copy the station MAC from the console. Open <a href="http://go/wifi-setup" target="_blank" rel="noreferrer">go/wifi-setup (opens in a new tab)</a> and add that MAC address to register your board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
       <p class="lesson-note">This reads the station MAC without joining Wi-Fi. Registration isn’t a connection test; the network must support 2.4 GHz open access, without 802.1X or a captive portal.</p>`,
   },
   {
@@ -91,7 +91,7 @@ export const lessons = [
     summary: "Guest-AccessNG → Sabre Springs → your display.",
     content: `
       <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>☀️ Fetch</span><span>→</span><span>Display °F</span></div>
-      <p>Give IT your <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
+      <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
       <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and clock synchronization. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
