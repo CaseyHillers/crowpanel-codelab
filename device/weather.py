@@ -43,7 +43,7 @@ def _pause(started, timeout_ms):
 
 def _require_clock():
     if time.gmtime()[0] < 2026:
-        raise OSError("clock is before 2026; call sync_time() before HTTPS")
+        raise OSError("clock is before 2026; run from the browser Weather lesson to set UTC, or set machine.RTC before HTTPS")
 
 
 def connect(ssid, password, timeout=15):

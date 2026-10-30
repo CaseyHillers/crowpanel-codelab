@@ -93,8 +93,9 @@ export const lessons = [
       <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>☀️ Fetch</span><span>→</span><span>Display °F</span></div>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
+      <p>The Weather lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and clock synchronization. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
+      <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
   },
   {
     id: "finish", title: "What will you build next?", navTitle: "Next projects & cleanup", minutes: 10, sample: "snake", layout: "guide",

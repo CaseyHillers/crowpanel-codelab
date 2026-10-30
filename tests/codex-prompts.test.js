@@ -78,8 +78,8 @@ test('optional weather and slides use the actual repository interfaces', () => {
   for (const requirement of [
     /only if requested.*weather/i,
     /from wifi_config import SSID, PASSWORD/,
-    /from weather import connect, sync_time, fetch_weather/,
-    /connect\(SSID, PASSWORD\).*sync_time\(\).*fetch_weather\(\)/,
+    /from weather import connect, fetch_weather/,
+    /connect\(SSID, PASSWORD\).*fetch_weather\(\)/,
     /Sabre Springs.*Fahrenheit.*mph/,
     /temperature_2m.*apparent_temperature.*relative_humidity_2m.*wind_speed_10m.*weather_code.*time/,
     /HTTPS.*certificate verification.*never disable/i,

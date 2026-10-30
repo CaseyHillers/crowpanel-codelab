@@ -3,18 +3,22 @@
 An empty password selects the open workshop network (no Wi-Fi password).
 MAC registration does not add enterprise 802.1X support; captive portals
 are not handled. Do not share this script with private credentials in it.
+
+Run in RAM from the browser's Weather lesson sets the RTC from your computer
+over USB before this script runs. No NTP is needed. For standalone use, set
+machine.RTC to accurate UTC over USB first (again after loss of power), or use
+weather.sync_time() only on networks that permit NTP. HTTPS stays verified.
 """
 
 from crowpanel import CrowPanel
-from weather import connect, sync_time, fetch_weather
+from weather import connect, fetch_weather
 
 WIFI_SSID = "Guest-AccessNG"
 WIFI_PASSWORD = ""
 
 print("Connecting to Wi-Fi (credentials hidden)...")
 station = connect(WIFI_SSID, WIFI_PASSWORD, timeout=15)
-print("Wi-Fi connected. Synchronizing the clock...")
-sync_time()
+print("Wi-Fi connected. Using the device clock set before this run; no NTP.")
 print("Fetching Sabre Springs weather over verified HTTPS...")
 current = fetch_weather()
 panel = CrowPanel(controller="jd79661")

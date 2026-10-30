@@ -8,6 +8,7 @@ import { checkUsbDevice, detectHostOs } from "./usb-check.js";
 import { createProjectPrompt } from "./codex-prompts.js";
 import { createStarterInputs } from "./starter-inputs.js";
 import { resetDevice } from "./device-reset.js";
+import { withBrowserClock } from "./weather-clock.js";
 import resetFilesSource from "../device/diagnostics/reset_files.py?raw";
 import starterSource from "../device/examples/00_board_check.py?raw";
 import snakeSolution from "../device/examples/02_snake_solution.py?raw";
@@ -514,6 +515,8 @@ byId("reset-device").addEventListener("click", async () => {
 async function runEditor() {
   if (!requireDevice() || transitioning || stopping) return;
   const source = editor.value;
+  const filename = samples[currentLesson.sample].name;
+  const needsBrowserClock = currentLesson.id === "weather";
   if (!source.trim()) {
     reportError(new Error("The editor is empty. Add Python code or reset the sample before running."));
     return;
@@ -540,11 +543,11 @@ async function runEditor() {
     if (!requireDevice()) return;
   }
   stopRequested = false;
-  const filename = samples[currentLesson.sample].name;
   runTask = perform("run", `Running ${filename} in RAM. Use Stop for an interactive loop.`, async () => {
     appendOutput(`\n[Run ${filename} in RAM]\n`);
     const outputBefore = receivedOutput;
-    const result = await connection.execute(source, { timeoutMs: 0 });
+    const runSource = needsBrowserClock ? withBrowserClock(source) : source;
+    const result = await connection.execute(runSource, { timeoutMs: 0 });
     if (receivedOutput === outputBefore) appendOutput((result?.stdout || "") + (result?.stderr || ""));
     if (stopRequested) {
       setStatus("Script interrupted with Ctrl-C. No boot file was changed.");

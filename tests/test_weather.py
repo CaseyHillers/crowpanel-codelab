@@ -343,27 +343,38 @@ class WeatherExampleTests(unittest.TestCase):
             runpy.run_path(str(ROOT / "device/examples/04_weather.py"))
         return output
 
-    def test_open_workshop_default_syncs_before_fetch_without_wifi_config(self):
+    def test_open_workshop_default_fetches_without_ntp_or_wifi_config(self):
         output = self.run_sample()
-        self.assertEqual(self.operations.mock_calls[:4], [
+        self.assertEqual(self.operations.mock_calls[:3], [
             call.connect("Guest-AccessNG", "", timeout=15),
-            call.sync_time(), call.fetch_weather(),
+            call.fetch_weather(),
             call.CrowPanel(controller="jd79661"),
         ])
+        self.operations.sync_time.assert_not_called()
         self.operations.CrowPanel.return_value.show.assert_called_once_with()
         self.assertNotIn("Guest-AccessNG", str(output.call_args_list))
 
-    def test_connection_or_clock_failure_prevents_fetch_and_display(self):
-        for operation in ("connect", "sync_time"):
-            with self.subTest(operation=operation):
-                self.setUp()
-                getattr(self.operations, operation).side_effect = OSError("unavailable")
-                with self.assertRaises(OSError):
-                    self.run_sample()
-                if operation == "connect":
-                    self.operations.sync_time.assert_not_called()
-                self.operations.fetch_weather.assert_not_called()
-                self.operations.CrowPanel.assert_not_called()
+    def test_blocked_ntp_does_not_prevent_weather_with_browser_seeded_clock(self):
+        self.operations.sync_time.side_effect = OSError("NTP blocked")
+        self.run_sample()
+        self.operations.sync_time.assert_not_called()
+        self.operations.fetch_weather.assert_called_once_with()
+        self.operations.CrowPanel.return_value.show.assert_called_once_with()
+
+    def test_connection_failure_prevents_fetch_and_display(self):
+        self.operations.connect.side_effect = OSError("unavailable")
+        with self.assertRaises(OSError):
+            self.run_sample()
+        self.operations.sync_time.assert_not_called()
+        self.operations.fetch_weather.assert_not_called()
+        self.operations.CrowPanel.assert_not_called()
+
+    def test_fetch_clock_validation_failure_prevents_display(self):
+        self.operations.fetch_weather.side_effect = OSError("clock is before 2026")
+        with self.assertRaisesRegex(OSError, "clock is before 2026"):
+            self.run_sample()
+        self.operations.sync_time.assert_not_called()
+        self.operations.CrowPanel.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -169,7 +169,7 @@ test("inline open Wi-Fi defaults disclose private code exposure without weakenin
   assert.match(samples.weather.source, /^WIFI_SSID\s*=\s*"Guest-AccessNG"$/m);
   assert.match(samples.weather.source, /^WIFI_PASSWORD\s*=\s*""$/m);
   assert.doesNotMatch(samples.weather.source, /from wifi_config import/);
-  assert.match(samples.weather.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*sync_time\(\)[\s\S]*fetch_weather\(\)/);
+  assert.match(samples.weather.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_weather\(\)/);
 
   const troubleshooting = text(lessonById.weather.content);
   assert.match(troubleshooting, /2\.4 GHz/);
