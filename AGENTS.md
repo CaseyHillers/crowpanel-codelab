@@ -4,10 +4,18 @@
 
 - `site/`: static browser workshop. Vite bundles local assets; no runtime backend.
 - `site/serial.js`: exclusive Web Serial connection and MicroPython raw REPL.
-- Library installation evicts only crowpanel/weather/slides from the device's
-  import cache after successful writes. This activates updated driver APIs
-  without rebooting or running main.py; failed reloads are not install success.
+- Library installation and Board check restart the VM in raw REPL before writes,
+  then evict only crowpanel/weather/slides from the import cache. Raw restart
+  skips main.py but runs existing boot.py; failures are not install success.
+- Device controls offer confirmed destructive Reset device: stop an active run,
+  raw soft reset, bounded recursive deletion of all writable device files,
+  another soft reset, reinstall libraries/certificate/00_board_check.py and
+  verify imports. Preserve browser drafts and firmware. Clear verification;
+  no automatic physical PASS. Partial failures must not report ready/success.
+  device/diagnostics/reset_files.py is RAM-only, never installed on the board.
 - `site/flash.js`: one-time prebuilt firmware installation; distinct port ownership.
+  Successful MicroPython install shows a power-cycle dialog and persistent note:
+  unplug/replug USB after writing, before Board check; never during writing.
 - `site/code-editor.js`: locally bundled CodeMirror Python editor with textarea
   fallback. Preserve per-lesson drafts, downloads, keyboard focus escape and the
   Ctrl/⌘ + Enter run shortcut; never send source to a build service.

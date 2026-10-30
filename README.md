@@ -114,8 +114,10 @@ display call or modify the canvas. The refresh waveform stays unchanged.
 Snake also runs with older installed drivers using plain `show()`, with a
 console warning: inputs cannot be collected during refresh until the libraries
 are updated. Hold a control until the refresh ends on those drivers.
-Installation refreshes the three workshop imports in RAM after writing files,
-so the updated API takes effect without rebooting or running a boot program.
+Library installation and Board check restart the MicroPython VM before copying
+files, then refresh the three workshop imports. Raw-REPL restart skips
+`main.py`; MicroPython still runs an existing `boot.py`. Failed restart or import
+reload is not installation success.
 Hello and the independent input diagnostic are not timed course routes; the
 diagnostic remains available below. The course still totals 120 minutes.
 
@@ -167,6 +169,22 @@ backup is required. Finish includes optional instructions for reinstalling
 Elecrow's published factory demo for the matching board revision; no factory
 recovery image is bundled in this project. Installing a macOS driver or approving a system extension
 is a separate user/IT action, not something this website performs.
+
+After a successful MicroPython install, a dialog and persistent installer note
+ask learners to unplug the ESP32's USB cable and plug it back in, then choose
+**Connect device → Connect & check board**. Never unplug during writing.
+
+For recovery after a failed installation or a running lesson, connect the board
+and choose **Device → Reset device…**. After explicit confirmation, it stops the
+current program, restarts MicroPython, deletes all writable device files and
+folders (including `boot.py`, `main.py` and saved credentials), restarts the VM
+again, and reinstalls the four workshop files plus `00_board_check.py`. It checks
+library imports but does not run the display or confirm physical controls.
+Run **Board check** next. Editor drafts stay in tab memory. MicroPython firmware
+stays installed; this is separate from factory-demo restoration. Deletion is not
+forensic secure erase. A timeout or failed deletion/write/import is incomplete;
+reconnect and retry. If the runtime cannot respond, try the physical RESET
+button and reconnect, then ask a facilitator if needed.
 
 The site includes the official combined image:
 
