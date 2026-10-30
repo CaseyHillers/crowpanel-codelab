@@ -12,7 +12,11 @@
   fallback. Preserve per-lesson drafts, downloads, keyboard focus escape and the
   Ctrl/⌘ + Enter run shortcut; never send source to a build service.
 - `site/lessons.js`: host setup preserves factory firmware; `verify` is the single
-  Board check, with factory checks/backup before optional confirmed flashing.
+  Board check, with factory checks before optional confirmed flashing. Workshop
+  boards arrive fresh out of the box; no initial backup step. Finish offers
+  optional restoration of Elecrow's published factory demo for the matching
+  revision, with an erase warning and vendor instructions; no bundled recovery
+  image or claim of verified physical restoration.
   The first coding lesson is 30-minute automatic Snake, then station MAC,
   slideshow, weather and Finish; no Hello or duplicate inputs course route.
   Keep the total at 120 minutes. Code lessons prioritize the editor; guide

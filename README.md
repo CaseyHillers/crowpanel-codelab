@@ -78,7 +78,7 @@ boards skip flashing. The factory check has no forced pass checkbox: stop and
 ask for help when a fresh board is blank instead of destroying the baseline.
 
 The single **Board check** (`#verify`) combines setup and the five-control check.
-After backup and explicit flash consent, the pinned official firmware installer
+With explicit flash consent, the pinned official firmware installer
 runs in-browser if needed. The check copies the four libraries plus
 `00_board_check.py` and runs in RAM without creating `main.py`. Input polling is
 bounded to 60 seconds; display refreshes stay outside the polling loop.
@@ -162,8 +162,10 @@ port, and unlocks Host setup's Next button. It does not prove MicroPython or the
 screen works. Sidebar navigation remains available for reading without hardware.
 
 **Installing firmware erases factory firmware, all device files, and saved
-credentials. Back up anything you need first.** There is no factory recovery
-image in this project. Installing a macOS driver or approving a system extension
+credentials.** Workshop boards are supplied fresh out of the box; no initial
+backup is required. Finish includes optional instructions for reinstalling
+Elecrow's published factory demo for the matching board revision; no factory
+recovery image is bundled in this project. Installing a macOS driver or approving a system extension
 is a separate user/IT action, not something this website performs.
 
 The site includes the official combined image:
@@ -399,6 +401,7 @@ firmware's third-party notices.
 - JD79661 initialization/LUTs: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/example/arduino-v1.2/main/EPD_Init.cpp
 - JD79661 BUSY/auto-sequence commands: vendor `Datasheet/EK79029DS-JD79661_Datasheet.pdf`, sections 8.2.10 and 9.1.
 - Firmware: https://micropython.org/download/ESP32_GENERIC_S3/
+- Optional factory demo restoration (Windows tool and revision-specific packages): https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/factory_firmware/readme.md
 - UART config: https://github.com/micropython/micropython/blob/v1.29.0/ports/esp32/boards/ESP32_GENERIC_S3/mpconfigboard.h
 - Raw REPL: https://docs.micropython.org/en/latest/reference/repl.html
 - Framebuffer: https://docs.micropython.org/en/latest/library/framebuf.html

@@ -298,7 +298,7 @@ ModemManager/other services as a blanket fix.
    [Edge's serial access policy][edge-policy].
 5. **Stop driver troubleshooting when the matching serial port is accessible.**
    Continue to **Board check** (`#verify`), the single setup/control check. It
-   checks the factory demo and requires backup before offering a confirmed
+   checks the factory demo before offering a confirmed
    MicroPython install and the five-control program.
    Already-MicroPython boards skip flashing. A subsequent
    “no MicroPython response” error is not proof of a broken USB driver; preserve
