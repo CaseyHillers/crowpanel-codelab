@@ -681,7 +681,7 @@ byId("flash-button").addEventListener("click", () => {
     return;
   }
   const selected = file ? "your selected local .bin" : `the pinned MicroPython ${FIRMWARE.version} ${FIRMWARE.board} image`;
-  if (!window.confirm(`ERASE this board's flash and install ${selected}? Existing firmware, Python files and credentials will be lost. This cannot restore the factory image. Confirm the ESP32-S3 board/memory variant and back up first.`)) return;
+  if (!window.confirm(`ERASE this board's flash and install ${selected}? Existing firmware, Python files and credentials will be lost. Confirm the ESP32-S3 board/memory variant before continuing.`)) return;
   void perform("flash", "Preparing firmware installer. Select the board's bootloader port when asked…", async () => {
     byId("flash-progress").hidden = false;
     byId("flash-progress").value = 0;

@@ -53,15 +53,14 @@ test("host preparation and verification stay separate from the code workspace", 
   }
 });
 
-test("destructive actions follow checks and backup, with security warnings visible", () => {
+test("destructive actions follow factory checks, with security warnings visible", () => {
   const steps = Array.from(primary(lessonById.verify).matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g),
     (match) => text(match[1]));
   const factory = steps.findIndex((step) => /factory/i.test(step) && /display/i.test(step) && /controls/i.test(step));
-  const backup = steps.findIndex((step) => /back\s?up/i.test(step) && /firmware/i.test(step) && /files/i.test(step));
   const flash = steps.findIndex((step) => /consent|confirm/i.test(step) && /flash/i.test(step));
   const install = steps.findIndex((step) => /\binstall\b/i.test(step) && /workshop files|workshop libraries/i.test(step));
-  assert.ok(factory >= 0 && backup > factory && flash > backup && install > flash,
-    "factory checks and backup must precede flash consent and file installation");
+  assert.ok(factory >= 0 && flash > factory && install > flash,
+    "factory checks must precede flash consent and file installation");
   assert.match(steps[factory], /(?:blank|unresponsive)[^.]*\b(?:stop|do not|don't)\b/i);
   assert.match(steps[flash], /eras\w*[^.]*firmware[^.]*files/i);
   assert.ok(steps.some((step) => /MicroPython/i.test(step) && /skip/i.test(step) && /flash/i.test(step)),
@@ -194,6 +193,6 @@ test("Finish keeps credential cleanup, explicit autostart and safe battery proje
   assert.match(finish, /Stop, then Disconnect/i);
   assert.match(finish, /Drafts disappear when this tab closes/i);
   assert.match(finish, /Save as main\.py only when ready.*overwrites the boot program.*every reset/i);
-  assert.match(finish, /Keep a backup and USB access to interrupt with Ctrl-C/i);
+  assert.match(finish, /Keep USB access to interrupt with Ctrl-C/i);
   assert.match(finish, /not a forensic secure erase/i);
 });

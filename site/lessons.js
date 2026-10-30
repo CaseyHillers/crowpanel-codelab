@@ -30,13 +30,11 @@ export const lessons = [
     content: `
       <ol class="task-steps">
         <li><strong>Factory check:</strong> use the demo controls to change the display. Blank or unresponsive? Stop and ask for help; do not erase.</li>
-        <li><strong>Keep what matters:</strong> back up needed firmware and files before replacing them.</li>
-        <li><strong>Install MicroPython below:</strong> confirm flashing only after backup. It erases firmware and files. Already on MicroPython? Skip flashing.</li>
+        <li><strong>Install MicroPython below:</strong> confirm flashing to prepare your new board. It erases firmware and files. Already on MicroPython? Skip flashing.</li>
         <li><strong>Start the check:</strong> install the workshop files, then press and release all five controls.</li>
       </ol>
-      <details><summary>Board revision, backups &amp; troubleshooting</summary>
+      <details><summary>Board revision &amp; troubleshooting</summary>
         <p>These examples target the ESP32-S3R8 with a JD79661 panel. Use the official ESP32_GENERIC_S3 OCTSPIRAM firmware. Stop if your variant differs; USB IDs do not identify the display controller.</p>
-        <p>A factory backup requires a real flash readback; a photo is not a backup. File copying alone does not preserve factory firmware. This site does not create a backup.</p>
         <p>The check replaces crowpanel.py, weather.py, slides.py, weather_ca.pem and 00_board_check.py. No main.py is created. Reconnect and retry after a partial installation.</p>
         <p>A BUSY error, missing control or blank screen is not success. The red LED alone is not a power test. For input-only troubleshooting, ask a facilitator to use device/examples/05_inputs.py; it needs no working display.</p>
       </details>`,
@@ -111,7 +109,17 @@ export const lessons = [
       </ul>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>
       <details open><summary>Before you unplug</summary><p>Download your work. Remove private Wi-Fi credentials from drafts, downloads and any device files (including wifi_config.py or main.py if used). Choose Stop, then Disconnect. Drafts disappear when this tab closes.</p></details>
-      <details><summary>Want it to start on power-up?</summary><p>Save as main.py only when ready: it overwrites the boot program and runs on every reset. Keep a backup and USB access to interrupt with Ctrl-C. Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p></details>`,
+      <details><summary>Want it to start on power-up?</summary><p>Save as main.py only when ready: it overwrites the boot program and runs on every reset. Keep USB access to interrupt with Ctrl-C. Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p></details>
+      <details><summary>Optional: put the factory demo back</summary>
+        <p>Finished experimenting? You can reinstall Elecrow’s published factory demo without an original backup. <strong>This replaces MicroPython and erases workshop files and saved credentials.</strong> Download any work you want to keep first.</p>
+        <ol>
+          <li>Choose <strong>Stop</strong>, then <strong>Disconnect</strong> here so the serial port is free.</li>
+          <li>Confirm your exact board revision. For the workshop’s V1.2 JD79661 board, download the four files in <a href="https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/tree/11291e3e9a868be8943232b065f3e264dfaeeae3/factory_firmware/Firmware-V1.2" target="_blank" rel="noreferrer">Elecrow’s factory firmware V1.2 folder (opens in a new tab)</a>. If your revision differs or is unclear, ask the organizer for the matching package.</li>
+          <li>On Windows, follow <a href="https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/factory_firmware/readme.md" target="_blank" rel="noreferrer">Elecrow’s Flash Download Tool instructions (opens in a new tab)</a>. Get IT approval if required. Select ESP32-S3 and your board’s COM port; use <a href="https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/factory_firmware/Firmware-V1.2/Burning%20Options.png" target="_blank" rel="noreferrer">the V1.2 burning settings (opens in a new tab)</a> and these file offsets: <code>main.ino.bootloader.bin → 0x0</code>, <code>main.ino.partitions.bin → 0x8000</code>, <code>boot_app0.bin → 0xe000</code>, <code>main.ino.bin → 0x10000</code>. Check all four files, then choose <strong>ERASE</strong> to clear the workshop installation. Wait for it to finish before choosing <strong>START</strong> to write the factory files. For macOS or Linux, ask the organizer for help with the same vendor package.</li>
+          <li>Wait for the tool’s <strong>FINISH</strong> message, then press <strong>RESET</strong>. Use the demo controls and check for a fresh display change. A successful write alone does not verify the display; ask for help if it stays blank.</li>
+        </ol>
+        <p>This restores the published demo, not your board’s unique original settings. Use the vendor tool for these four separate binaries; the workshop’s MicroPython installer expects a combined image.</p>
+      </details>`,
   },
 ];
 
