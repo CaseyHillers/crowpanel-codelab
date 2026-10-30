@@ -69,8 +69,12 @@ this repository. The initial lockfile was downloaded using registry.npmmirror.co
 | First program · Snake | 30 | Complete the automatic Snake control TODOs, with a full solution available |
 | Station MAC | 5 | Read the real Wi-Fi station MAC without joining a network |
 | Slideshow | 15 | Cycle three original images with up/down buttons |
-| ARM stock price | 20 | Join Wi-Fi, set UTC over USB, display a delayed ARM quote with its UTC minute |
+| Bluetooth desk message | 20 | Send a short message from the browser to the display without Wi-Fi |
 | Finish | 10 | Explore future projects, download work, remove private credentials and disconnect |
+
+Weather and ARM stock price are archived projects at the bottom of the sidebar,
+outside the two-hour course. Station MAC stays in the course; Wi-Fi registration
+is optional for the Bluetooth project.
 
 The welcome page keeps the 3D parallax hardware story. Host preparation comes
 next; factory verification precedes any firmware erase. Already-MicroPython
@@ -79,7 +83,7 @@ ask for help when a fresh board is blank instead of destroying the baseline.
 
 The single **Board check** (`#verify`) combines setup and the five-control check.
 With explicit flash consent, the pinned official firmware installer
-runs in-browser if needed. The check copies the six workshop files plus
+runs in-browser if needed. The check copies the seven workshop files plus
 `00_board_check.py` and runs in RAM without creating `main.py`. Input polling is
 bounded to 60 seconds; display refreshes stay outside the polling loop.
 Browser emoji indicators observe complete debounced press/release cycles, one
@@ -115,7 +119,7 @@ Snake also runs with older installed drivers using plain `show()`, with a
 console warning: inputs cannot be collected during refresh until the libraries
 are updated. Hold a control until the refresh ends on those drivers.
 Library installation and Board check restart the MicroPython VM before copying
-files, then refresh the `crowpanel`, `weather`, `slides` and `stocks` imports. Raw-REPL restart skips
+files, then refresh the `crowpanel`, `weather`, `slides`, `stocks` and `desk_message` imports. Raw-REPL restart skips
 `main.py`; MicroPython still runs an existing `boot.py`. Failed restart or import
 reload is not installation success.
 Hello and the independent input diagnostic are not timed course routes; the
@@ -178,7 +182,7 @@ For recovery after a failed installation or a running lesson, connect the board
 and choose **Device → Reset device…**. After explicit confirmation, it stops the
 current program, restarts MicroPython, deletes all writable device files and
 folders (including `boot.py`, `main.py` and saved credentials), restarts the VM
-again, and reinstalls the six workshop files plus `00_board_check.py`. It checks
+again, and reinstalls the seven workshop files plus `00_board_check.py`. It checks
 library imports but does not run the display or confirm physical controls.
 Run **Board check** next. Editor drafts stay in tab memory. MicroPython firmware
 stays installed; this is separate from factory-demo restoration. Deletion is not
@@ -301,11 +305,13 @@ For terminal use: `.venv/bin/mpremote connect /dev/cu.wchusbserial21410 run devi
 
 ### Installed files
 
-Board check and Advanced install copy these six runtime/data files. Board check
+Board check and Advanced install copy these seven runtime/data files. Board check
 also copies `00_board_check.py` before running it in RAM.
 
 - `device/crowpanel.py`: SSD1680/JD79661 full-refresh presets, 250 × 122 landscape.
 - `device/slides.py`: original Crow, Circuit, and Summit bitmaps.
+- `device/desk_message.py`: bounded Bluetooth Low Energy message receiver with
+  an offline USB-only initial-message mode.
 - `device/weather.py`: shared bounded Wi-Fi and certificate-verified `fetch_json`
   operations, plus standalone weather and optional NTP helpers; fails closed on
   TLS errors, unsupported TLS configuration, stale clock, or malformed responses.
@@ -320,10 +326,45 @@ also copies `00_board_check.py` before running it in RAM.
   The `scanner.tradingview.com` chain verified against this root on October 30,
   2026. Renew trust material if the provider changes chains; keep verification enabled.
 - `device/examples/`: the Board check, Snake TODO scaffold and full solution,
-  station MAC, slideshow and ARM stock scripts, plus standalone weather,
+  station MAC, slideshow and desk-message scripts, plus archived stocks/weather,
   diagnostics and Hello.
 
-The ARM stock lesson uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
+### Send a message to your desk
+
+Run `04_desk_message.py` in RAM over USB, then use the browser's Bluetooth
+controls to choose the exact `Desk-ABC123` name shown on your physical board.
+Keep USB connected for power and receiver control. Sending needs no Wi-Fi,
+internet or NTP. Desktop Chrome/Edge, HTTPS or localhost, Bluetooth hardware and
+managed-browser permission are required; respect IT restrictions.
+
+Messages use printable ASCII and line breaks, up to 112 bytes fitting four
+wrapped lines of 28. The receiver runs for five minutes; Back or Stop ends it
+and cleans up Bluetooth. Run in RAM again for another session. Nearby people
+can connect to this unauthenticated service, so do not send private messages,
+credentials or corporate information. Disconnect Bluetooth closes the browser
+link without stopping the receiver. A `shown:id` acknowledgement means the
+driver reported refresh completion; check the physical screen yourself.
+
+The receiver keeps one pending display message and a bounded 16-packet queue,
+with at least two seconds of stable viewing after each completed full refresh.
+Custom service `8b5e4d20-6c8a-4b39-a7d8-3f2c91a65010` uses RX suffix `5011`
+and status suffix `5012`. Packets are at most 20 bytes: BEGIN `[1,id,length]`,
+DATA `[2,id,up to 18 payload bytes]`, COMMIT `[3,id]`. Bluetooth transport is
+independent of the USB serial connection; no display work happens in BLE IRQs.
+
+If browser Bluetooth or firmware support is unavailable, set
+`USE_BLUETOOTH = False`, edit `START_MESSAGE`, and Run in RAM to draw once over
+USB. Existing learners add the library through **Board check → Advanced
+install**, without reflashing. Automated checks do not establish physical BLE
+or display operation on a board.
+
+API references: [MicroPython Bluetooth](https://docs.micropython.org/en/latest/library/bluetooth.html),
+[Chrome Web Bluetooth](https://developer.chrome.com/docs/capabilities/bluetooth),
+and [MDN Web Bluetooth](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API).
+
+### Archived Wi-Fi projects
+
+The archived ARM stock lesson uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""`; the empty password means an open network. The exercise
 does not read `wifi_config.py`; there is no separate app Wi-Fi form.
 Learners may enter private credentials for another approved network, but those
@@ -336,9 +377,9 @@ access permits reading device files; this is not a secrets vault. Saving
 
 Wi-Fi examples use 2.4 GHz Personal/open networks. Enterprise 802.1X and captive
 portal login are not implemented. Registering a MAC alone does not guarantee
-corporate-network compatibility. The Stocks lesson's **Run in RAM** sets the
+corporate-network compatibility. Archived Weather and Stocks **Run in RAM** set the
 board's UTC RTC from the computer over USB before executing the editor source.
-The sample does not use NTP, so guest networks may block it. Keep the computer's
+The samples do not require NTP, which guest networks may block. Keep the computer's
 clock correct; HTTPS certificate and stale-clock checks remain enabled. No
 firmware reinstall is needed. Existing learners must install the latest stock
 libraries and certificate through **Board check → Advanced install**, not reflash.
@@ -372,8 +413,8 @@ On October 30, 2026, a host request using HTTP/1.0, `stocks_ca.pem` and
 `Accept-Encoding: identity` received a 160-byte JSON response with Content-Length.
 This does not verify the Wi-Fi request or physical display on a board.
 
-The old `#weather` course link redirects to `#stocks`. The independent
-`04_weather.py` example remains available outside the timed course; its data is
+The `#weather` and `#stocks` links open their separate archived lessons.
+The `04_weather.py` example remains outside the timed course; its data is
 for Sabre Springs, San Diego (32.9528, -117.094), with Fahrenheit, mph and Los
 Angeles local time.
 

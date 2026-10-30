@@ -5,11 +5,11 @@
 - `site/`: static browser workshop. Vite bundles local assets; no runtime backend.
 - `site/serial.js`: exclusive Web Serial connection and MicroPython raw REPL.
 - Library installation and Board check restart the VM in raw REPL before writes,
-  then evict only crowpanel/weather/slides/stocks from the import cache. Raw restart
+  then evict only crowpanel/weather/slides/stocks/desk_message from the import cache. Raw restart
   skips main.py but runs existing boot.py; failures are not install success.
 - Device controls offer confirmed destructive Reset device: stop an active run,
   raw soft reset, bounded recursive deletion of all writable device files,
-  another soft reset, reinstall six workshop files plus 00_board_check.py and
+  another soft reset, reinstall seven workshop files plus 00_board_check.py and
   verify imports. Preserve browser drafts and firmware. Clear verification;
   no automatic physical PASS. Partial failures must not report ready/success.
   device/diagnostics/reset_files.py is RAM-only, never installed on the board.
@@ -26,8 +26,10 @@
   revision, with an erase warning and vendor instructions; no bundled recovery
   image or claim of verified physical restoration.
   The first coding lesson is 30-minute automatic Snake, then station MAC,
-  slideshow, ARM stock price and Finish; no Hello or duplicate inputs course route.
-  The 20-minute stocks route replaces weather; old #weather links alias #stocks.
+  slideshow, 20-minute Bluetooth desk message and Finish; no Hello or duplicate
+  inputs course route. Keep station MAC; its Wi-Fi registration is optional for
+  Bluetooth. Weather and Stocks are separate archived routes at the bottom,
+  excluded from timed navigation and the course duration; #weather opens Weather.
   Keep the total at 120 minutes. Code lessons prioritize the editor; guide
   lessons hide it. No general completion tracking or automatic hardware PASS.
   Board check requires five observed complete cycles, a successful display
@@ -106,6 +108,20 @@
   completion; a permanently idle BUSY pin is not success.
 - `device/weather.py`: shared bounded connect/fetch_json with verified HTTPS,
   plus the standalone Sabre Springs weather API/sample and optional sync_time.
+- `device/desk_message.py` and `device/examples/04_desk_message.py`: bounded
+  five-minute BLE receiver, independent of USB serial. USB powers the board and
+  starts the receiver; message sending needs no Wi-Fi/NTP. Browser Web Bluetooth
+  chooses the matching physical Desk-ABC123 name using the custom service.
+  Back/Stop clean up Bluetooth. Accept printable ASCII/newlines, at most 112
+  bytes fitting four wrapped lines of 28. Packets are at most 20 bytes:
+  BEGIN [1,id,length], DATA [2,id,up to 18 payload bytes], COMMIT [3,id].
+  Bound incoming packets to 16 and pending display messages to one. Keep two
+  seconds of stable viewing after each completed refresh; never refresh in IRQ.
+  shown:id means driver-reported completion, not physical display proof.
+  The unauthenticated nearby service must carry no secrets/private messages.
+  USE_BLUETOOTH=False shows edited START_MESSAGE once over USB, including on
+  firmware without Bluetooth. No physical BLE verification is claimed.
+  Existing learners use Board check → Advanced install, not reflash.
 - `device/stocks.py`: keyless TradingView public website endpoint for NASDAQ ARM,
   last available one-minute quote in USD, paired with provider minute UTC time.
   The observed feed is 15-minute delayed; do not promise real-time prices or
@@ -116,8 +132,8 @@
   stocks_ca.pem is Amazon Root CA 1 from the official Amazon Trust repository;
   never disable TLS. Host HTTPS was validated; board stock/Wi-Fi output was not.
   Existing learners install the latest files via Board check → Advanced install,
-  not reflash. Six files: crowpanel.py/weather.py/slides.py/weather_ca.pem/stocks.py/stocks_ca.pem.
-  Stocks lesson Run in RAM seeds machine.RTC from computer UTC over USB before
+  not reflash. Seven files: crowpanel.py/weather.py/slides.py/weather_ca.pem/stocks.py/stocks_ca.pem/desk_message.py.
+  Archived Weather and Stocks Run in RAM seed machine.RTC from computer UTC over USB before
   running editor code. The sample does not call NTP; sync_time remains optional
   for standalone use where allowed. Preserve TLS/stale-clock validation, UTC
   conversion, editable drafts and no clock writes to device files. Standalone

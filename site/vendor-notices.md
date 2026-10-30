@@ -36,14 +36,14 @@ The dealt IBM Plex faces are intentionally not downloaded or bundled: no local
 font assets were available, and reliable enterprise/offline operation is the
 primary purpose. System UI and system monospace are an explicit typography
 exception. The UI makes no external font, image or analytics requests. Firmware
-downloads and device-side stock/standalone weather requests are separate, explicit network
+downloads and device-side archived stock/weather requests are separate, explicit network
 operations. No stock photography, icon packs or third-party font files are
 bundled. Local macOS setup screenshots supplied by Casey Hillers are included;
 their provenance is recorded in `guides/macos/README.md`.
 
 Course drafts live only in JavaScript memory for the
 current tab. There is no localStorage, IndexedDB or server-side draft storage.
-Stock lesson defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
+Archived stock lesson defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""` for the open workshop network, not a separate config file.
 There is no separate app Wi-Fi form. Optional private credentials edited into
 the code are visible in the editor and included in downloads; never put them in
@@ -52,7 +52,10 @@ browser storage or logs. Remove them from drafts, downloads and any device files
 Device files are plaintext and USB-readable; deletion is not forensic erasure.
 
 The 120-minute course has one Board check, then 30-minute automatic Snake with
-a TODO scaffold and full solution, station MAC, slideshow, ARM stocks and Finish.
+a TODO scaffold and full solution, station MAC, slideshow, Bluetooth desk message
+and Finish. Weather and Stocks appear in a separate archived section at the
+bottom, excluded from the 120 minutes. Station MAC remains available; Wi-Fi
+registration is not needed for Bluetooth.
 Hello and the standalone display-independent input diagnostic are not separate
 course routes. Browser emoji indicators observe input cycles; confetti requires
 five complete cycles, a successful display marker and explicit user confirmation
@@ -60,9 +63,39 @@ of the physical party screen. The e-paper party drawing has one final static
 refresh, not animation. Finish's battery ideas require safe compatibility checks,
 not an assumption that any pack or bare cell is suitable.
 
-## ARM quote source and trust certificate
+## Bluetooth desk message
 
-The 20-minute Stocks lesson makes one verified HTTPS request to TradingView's
+The workshop's own `desk_message.py` uses MicroPython Bluetooth and a custom
+BLE service; `site/desk-message.js` uses Web Bluetooth independently of USB
+serial. API references:
+
+- https://docs.micropython.org/en/latest/library/bluetooth.html
+- https://developer.chrome.com/docs/capabilities/bluetooth
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API
+
+No Bluetooth helper package or third-party message service is bundled. Keep USB
+connected for power and to start the five-minute receiver; match the physical
+`Desk-ABC123` name in the browser chooser. Messages need no Wi-Fi or NTP.
+Back/Stop clean up the receiver, while Disconnect Bluetooth closes only the
+browser link. The unauthenticated nearby service is for non-private ASCII text,
+up to 112 bytes fitting four wrapped lines of 28. Do not send secrets or
+corporate information.
+
+The custom protocol uses at most 20-byte packets: BEGIN `[1,id,length]`, DATA
+`[2,id,up to 18 payload bytes]`, and COMMIT `[3,id]`. The receiver bounds its
+packet queue to 16 and pending display message to one, allowing at least two
+seconds of stable viewing after each completed full refresh. `shown:id` means
+driver-reported refresh completion, not proof of physical display output.
+Physical BLE operation has not been verified on a board.
+
+The USB fallback sets `USE_BLUETOOTH=False` and draws edited `START_MESSAGE`
+once, including without firmware Bluetooth support. Existing learners install
+the latest seven workshop files through Board check → Advanced install, not
+reflash. Managed-browser restrictions must be respected.
+
+## Archived ARM quote source and trust certificate
+
+The archived Stocks lesson makes one verified HTTPS request to TradingView's
 public website endpoint and one display refresh per run, without background
 polling or an API key. It shows the last available NASDAQ:ARM one-minute quote
 in USD, its provider minute timestamp in UTC and the reported delay. The
@@ -83,9 +116,9 @@ https://www.amazontrust.com/repository/AmazonRootCA1.pem, SHA-256 fingerprint
 `8ECDE6884F3D87B1125BA31AC3FCB13D7016DE7F57CC904FE1CB97C6AE98196E`.
 Host HTTPS verification succeeded against this root on October 30, 2026; this
 does not establish Wi-Fi or physical display operation on the learner's board.
-The Stocks lesson sets UTC from the computer over USB before Run in RAM, so it
-does not need NTP and retains HTTPS verification. Old `#weather` course links
-redirect to Stocks; the separate weather sample remains outside the course.
+Archived Stocks and Weather set UTC from the computer over USB before Run in
+RAM, so they do not need NTP and retain HTTPS verification. `#weather` opens
+the separate archived Weather lesson; neither project counts toward the course.
 
 ## Hardware introduction
 
