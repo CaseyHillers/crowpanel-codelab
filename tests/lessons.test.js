@@ -196,7 +196,9 @@ test("inline open Wi-Fi defaults disclose private code exposure without weakenin
   assert.match(samples.stocks.source, /^WIFI_SSID\s*=\s*"Guest-AccessNG"$/m);
   assert.match(samples.stocks.source, /^WIFI_PASSWORD\s*=\s*""$/m);
   assert.doesNotMatch(samples.stocks.source, /from wifi_config import/);
-  assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)[\s\S]*fetch_quote\(timeout=30\)/);
+  assert.match(samples.stocks.source, /connect\(WIFI_SSID, WIFI_PASSWORD, timeout=15\)/);
+  assert.match(samples.stocks.source, /WATCHLIST = \["ARM", "QCOM", "GOOG"\]/);
+  assert.match(samples.stocks.source, /def fetch_symbol\(symbol\)/);
 
   assert.equal(lessonById.weather.archived, true);
   assert.equal(lessonById.stocks.archived, true);
@@ -207,8 +209,10 @@ test("inline open Wi-Fi defaults disclose private code exposure without weakenin
   assert.match(stocks, /15 minutes.*delayed|delayed.*15 minutes/i);
   assert.match(stocks, /minute.*UTC/i);
   assert.match(stocks, /not.*real.time/i);
-  assert.match(stocks, /fetches once.*no.*polling/i);
-  assert.match(stocks, /NTP is not required/i);
+  assert.match(stocks, /every 15 minutes/i);
+  assert.match(stocks, /Menu.*60-second cooldown/i);
+  assert.match(stocks, /wheel.*cached quotes/i);
+  assert.match(stocks, /requires NTP clock synchronization/i);
   assert.match(stocks, /Board check.*Advanced install.*no firmware reflash/i);
 
   const troubleshooting = text(lessonById.stocks.content);
@@ -232,7 +236,7 @@ test("Finish keeps credential cleanup, explicit autostart and safe battery proje
   assert.match(finish, /Remove private Wi-Fi credentials from drafts, downloads and any device files/i);
   assert.match(finish, /Stop, then Disconnect/i);
   assert.match(finish, /Drafts disappear when this tab closes/i);
-  assert.match(finish, /Save as main\.py only when ready.*overwrites the boot program.*every reset/i);
+  assert.match(finish, /Save as main\.py only when ready.*overwrites the previous startup application.*every normal power-up or reset/i);
   assert.match(finish, /Keep USB access to interrupt with Ctrl-C/i);
   assert.match(finish, /not a forensic secure erase/i);
 });

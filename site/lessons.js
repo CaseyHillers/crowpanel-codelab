@@ -1,7 +1,7 @@
 import mac from "../device/examples/01_mac.py?raw";
 import snake from "../device/examples/02_snake.py?raw";
 import slideshow from "../device/examples/03_slideshow.py?raw";
-import stocks from "../device/examples/04_stocks.py?raw";
+import stocks from "../device/projects/stock-ticker/ram/04_stocks.py?raw";
 import weather from "../device/examples/04_weather.py?raw";
 import message from "../device/examples/04_desk_message.py?raw";
 import project from "../device/examples/my_project.py?raw";
@@ -80,7 +80,7 @@ export const lessons = [
     summary: "Run → copy the station MAC → register your device.",
     content: `
       <div class="lesson-flow" aria-label="Network registration steps"><span>▶ Run</span><span>→</span><span>Copy MAC</span><span>→</span><span>Register device</span></div>
-      <p>Run the code and copy the station MAC from the console. Open <a href="http://go/wifi-setup" target="_blank" rel="noreferrer">go/wifi-setup (opens in a new tab)</a> and add that MAC address to register your board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
+      <p>Run the code and copy the station MAC from the console. Open <a href="https://guest.arm.com/guest/mac_list.php" target="_blank" rel="noreferrer">Register your device MAC address (opens in a new tab)</a> and add that MAC address to register your board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
       <p class="lesson-note">Wi-Fi registration is not needed for the Bluetooth message project.</p>
       <p class="lesson-note">This reads the station MAC without joining Wi-Fi. Registration isn’t a connection test; the network must support 2.4 GHz open access, without 802.1X or a captive portal.</p>`,
   },
@@ -122,8 +122,19 @@ export const lessons = [
       </ul>
       <p><a href="#project">Continue in Your project</a> to save your own Python files in this browser.</p>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>
+      <h2>Run in RAM or start on power-up?</h2>
+      <p><strong>Run in RAM</strong> is for trying your project. It runs the editor code in temporary memory without saving it as the startup program. When you unplug the ESP32 and it loses power, the running program and RAM-only variables disappear. An e-paper image may stay visible, but that does not mean the code is still running. Unplugging USB does not stop a board that has another power source.</p>
+      <p><strong>Startup mode</strong> stores your Python code in <code>main.py</code> on the board’s flash filesystem so it survives power cycles and runs again at normal startup. It restarts the program; it does not resume where it stopped. Counters, settings and history need their own explicit save/load logic if you want those values to survive too.</p>
+      <ol class="task-steps">
+        <li>Download your project and back up any existing <code>main.py</code> before replacing it.</li>
+        <li>Ask <strong>Codex</strong> to adapt your working RAM project for standalone startup. Include initialization, required libraries, clock setup if needed, recoverable errors, and save/load behavior for any data you want to keep. Do not include credentials in the prompt.</li>
+        <li>Review the result and try it with <strong>Run in RAM</strong> first. Open <a href="#project">Your project</a>, put the reviewed Python in the editor, expand <strong>Run automatically on boot</strong>, then choose <strong>Save as main.py…</strong> and confirm the overwrite only when ready.</li>
+        <li>After the save completes, intentionally power-cycle the board and check the physical display and controls. A successful save alone does not verify startup behavior.</li>
+      </ol>
+      <p class="lesson-note">Saving in the browser or downloading a .py file does not install it on the board. Save as main.py only when ready: it overwrites the previous startup application and runs on every normal power-up or reset. Keep USB access to interrupt with Ctrl-C.</p>
+      <p><a href="https://docs.micropython.org/en/latest/reference/reset_boot.html" target="_blank" rel="noopener noreferrer">MicroPython startup reference (opens in a new tab)</a> · <a href="./appendix/flash-backup.html">Full flash backup and restore guide</a></p>
       <details open><summary>Before you unplug</summary><p>Download your work. Remove private Wi-Fi credentials from drafts, downloads and any device files (including wifi_config.py or main.py if used). Choose Stop, then Disconnect. Drafts disappear when this tab closes.</p></details>
-      <details><summary>Want it to start on power-up?</summary><p>Save as main.py only when ready: it overwrites the boot program and runs on every reset. Keep USB access to interrupt with Ctrl-C. Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p></details>
+      <p>Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p>
       <details><summary>Optional: put the factory demo back</summary>
         <p>Finished experimenting? You can reinstall Elecrow’s published factory demo without an original backup. <strong>This replaces MicroPython and erases workshop files and saved credentials.</strong> Download any work you want to keep first.</p>
         <ol>
@@ -148,18 +159,21 @@ export const lessons = [
   },
   {
     id: "stocks", title: "Put ARM’s stock price on your desk", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
-    summary: "Guest-AccessNG → NASDAQ:ARM → your display.",
+    summary: "ARM, QCOM and GOOG · wheel selection · Menu refresh · 15-minute checks.",
     content: `
       <p class="lesson-note">Archived Wi-Fi project · outside the two-hour course.</p>
-      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>ARM quote</span><span>→</span><span>Display USD</span></div>
+      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>NASDAQ watchlist</span><span>→</span><span>Display USD</span></div>
+      <p>Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code> near the top before running. Use one to ten uppercase NASDAQ symbols. The wheel scrolls through cached quotes; no request is made just to select another stock.</p>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
-      <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
-      <p>The display shows ARM’s <strong>NASDAQ</strong> quote in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. Quotes are <strong>delayed by 15 minutes</strong>, not real-time. The timestamp marks the last available one-minute bar in UTC; it can be from an earlier session when the market is closed.</p>
-      <p>This script fetches once and refreshes the display once; no automatic polling. It allows up to 30 seconds for the HTTPS request, including DNS, connection setup and TLS. Change a label or the layout, then use <strong>Run in RAM</strong> again when you want another quote.</p>
-      <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
+      <p>For another approved network, edit those two variables. Private secrets should instead use existing device-local configuration; never include them in shared code.</p>
+      <p>The display shows ARM and the other selected <strong>NASDAQ</strong> quotes in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. The tested feed is <strong>delayed by 15 minutes</strong>, not real-time. Each quote shows its reported delay and last available one-minute bar in UTC, separately from the check time; it can be from an earlier session when the market is closed.</p>
+      <p>Use <strong>Run in RAM</strong>. The ticker checks all symbols on start and every <strong>15 minutes</strong>. Press <strong>Menu</strong> to request another check; repeated requests coalesce with a <strong>60-second cooldown</strong>. Menu restarts the automatic schedule. <strong>Back</strong> exits; the browser’s <strong>Stop</strong> interrupts the run.</p>
+      <p>The wheel selects cached quotes. Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. Failed checks retain the last quote and mark it stale.</p>
+      <p>Run in RAM seeds UTC from your computer over USB, but this ticker also requires <strong>NTP clock synchronization</strong> before the first request and resynchronizes on a fetch cycle at least six hours later. Your approved network must allow NTP and verified HTTPS. Check your computer’s date and time; never disable TLS verification to work around a clock or certificate error.</p>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>A TLS handshake/request write timeout means no verified response was received; a longer wait does not guarantee success. A certificate error must not be bypassed. If comparing networks, power-cycle the board before switching to your hotspot so an existing Wi-Fi association is not reused. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. If a request fails, read the console and try again later; never substitute an invented price. The quote timestamp describes the data’s minute, not the time you clicked Run.</p></details>`,
+      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and NTP access. Clock synchronization failure prevents fetching; the script retries after 15 minutes, or on a Menu request once the cooldown ends. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>Each HTTPS request has a 30-second timeout; DNS uses the firmware resolver. A certificate error must not be bypassed. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. Read the console and try again later; never substitute an invented price. Quotes can remain unchanged outside market hours.</p></details>
+      <details><summary>Run at startup instead?</summary><p>The editor sample runs in RAM and does not install itself. To start on power-up, back up your existing main.py and explicitly choose <strong>Save as main.py</strong>; this replaces your previous startup application. The ticker sets UTC using NTP after boot. Keep a local source backup before switching projects.</p></details>`,
   },
 ];
 

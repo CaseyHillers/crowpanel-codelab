@@ -427,7 +427,9 @@ Wi-Fi examples use 2.4 GHz Personal/open networks. Enterprise 802.1X and captive
 portal login are not implemented. Registering a MAC alone does not guarantee
 corporate-network compatibility. Archived Weather and Stocks **Run in RAM** set the
 board's UTC RTC from the computer over USB before executing the editor source.
-The samples do not require NTP, which guest networks may block. Keep the computer's
+The one-shot examples do not require NTP, which guest networks may block. The
+archived Stocks editor now uses the watchlist package and requires NTP before
+its first quote request, with later resynchronization. Keep the computer's
 clock correct; HTTPS certificate and stale-clock checks remain enabled. No
 firmware reinstall is needed. Existing learners must install the latest stock
 libraries and certificate through **Board check → Advanced install**, not reflash.
@@ -439,8 +441,14 @@ are rejected rather than accepted unsafely.
 
 ### ARM quote source and timestamp
 
-The Stocks lesson fetches once and refreshes the display once per run; it does
-not poll in the background. Its public, keyless website endpoint is:
+The archived Stocks lesson uses `device/projects/stock-ticker/ram/04_stocks.py`.
+Edit its `WATCHLIST` (ARM, QCOM and GOOG by default); the wheel selects cached
+quotes, Menu queues a check with a 60-second cooldown, and all symbols are
+checked every 15 minutes. Back exits. NTP and verified HTTPS are required.
+Display refreshes use fresh panel objects, Wi-Fi off and ten seconds of stable
+viewing after the previous completed refresh. See the package README for
+startup instructions and limitations. The original one-shot example remains
+in `device/examples/04_stocks.py` for reference. The public, keyless endpoint is:
 
 https://scanner.tradingview.com/symbol?symbol=NASDAQ%3AARM&fields=close%7C1%2Ctime%7C1%2Ccurrency%2Cupdate_mode%2Cdescription%2Cexchange&no_404=true
 
@@ -583,3 +591,7 @@ Its ports include third-party components with their own licenses, referenced in
 that license file and the upstream ESP-IDF source. npm dependency license files
 are copied into the distribution by the build script. See also
 `site/vendor-notices.md` for interface and runtime provenance.
+
+## Optional stock watchlist
+
+See [the key-free stock ticker project](device/projects/stock-ticker/README.md) for complete RAM and opt-in startup versions, an editable ARM/QCOM/GOOG watchlist, wheel navigation, Menu refresh and 15-minute automatic checks. Quotes can be delayed; this is not a real-time trading feed. The project includes offline validation and observed JD79661 refresh-workaround findings.

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Back up and restore ESP32 flash | CrowPanel lab appendix</title><style>body{margin:0;background:#f4f6f8;color:#152631;font:17px/1.65 system-ui,sans-serif}header,main,footer{max-width:850px;margin:auto;padding:24px}header{border-bottom:1px solid #c7d2d9}nav{display:flex;gap:12px 24px;flex-wrap:wrap}a{color:#006b86;text-underline-offset:3px}a:focus-visible{outline:3px solid #c46a18;outline-offset:4px}main{background:white;margin:24px auto;border-radius:12px;padding:32px;box-sizing:border-box}h1{font-size:clamp(28px,5vw,42px);line-height:1.2}h2{font-size:23px;margin-top:32px}.lead{font-size:20px}.eyebrow{color:#506574;text-transform:uppercase;letter-spacing:.1em;font-size:13px}.note{padding:16px;background:#eef5f8;border-left:4px solid #007a95}li{margin:12px 0}pre{overflow:auto;padding:18px;background:#122c39;color:#f1f7fa;border-radius:6px;font-size:14px}code{overflow-wrap:anywhere}pre code{overflow-wrap:normal}footer{font-size:14px}@media(max-width:600px){main{margin:12px;padding:20px}header,footer{padding:20px}}</style></head>
+<body><header><a href="../#appendix">← CrowPanel lab appendix</a><nav aria-label="Appendix pages"><a href="./share-projects.html">Share projects with p.arm.com</a> <a href="./codex-setup.html">Install Codex and configure access</a> <a href="./flash-backup.html" aria-current="page">Back up and restore ESP32 flash</a></nav></header>
+<main id="content"><p class="eyebrow">Optional appendix · outside the two-hour course</p><h1>Back up and restore ESP32 flash</h1>
+<p class="lead">Keep a complete flash snapshot before switching projects. For everyday editing, also download your Python sources: a binary backup is not a folder you can browse in Windows Explorer.</p>
+<p class="note">Optional advanced workflow. No commands run from this page. Reading flash interrupts the running application and can reset the board; restoring replaces its stored contents. Do this only when you are ready and authorized.</p>
+<h2>Before you start</h2>
+<ol><li>Use an approved installation of <strong>esptool 5.x</strong>. See <a href="https://docs.espressif.com/projects/esptool/en/latest/installation.html" target="_blank" rel="noopener noreferrer">Espressif's installation guide</a>. This tool is not needed for the normal browser workshop.</li>
+<li>Stop the running project and disconnect the workshop browser's serial connection. Close other serial tools.</li>
+<li>Find the board's current port in Windows Device Manager. <code>COM7</code> below is an example; substitute your actual port. Use a reliable USB data cable and steady power.</li>
+<li>Open PowerShell in a private backup folder. Choose a new descriptive filename for each backup so you do not overwrite an earlier snapshot.</li></ol>
+<h2>1. Back up the whole flash</h2>
+<pre><code>esptool --port COM7 --baud 460800 read-flash 0 ALL esp32s3-backup_stock_timer_goog_arm_qcom.bin</code></pre>
+<p><code>0</code> starts at the beginning; <code>ALL</code> detects the flash size. Wait for successful completion. Save the detected chip/flash size and file size alongside a description of the project and board revision.</p>
+<p>Record a checksum to detect later file damage:</p>
+<pre><code>Get-FileHash .\esp32s3-backup_stock_timer_goog_arm_qcom.bin -Algorithm SHA256</code></pre>
+<p>Store the binary and checksum securely. A full image includes firmware and stored project files/data, potentially passwords. It excludes unsaved RAM/editor changes and eFuses. A completed read alone does not demonstrate that a restore will boot.</p>
+<h2>2. Restore that snapshot later</h2>
+<p><strong>This overwrites the board's current flash contents, including startup code and incident history.</strong> Back up the current state to a different filename first. Use the original board and its matching image; do not assume an image is portable between board revisions.</p>
+<p>Check the saved checksum, close serial connections, then deliberately run:</p>
+<pre><code>esptool --port COM7 --baud 460800 write-flash 0 esp32s3-backup_stock_timer_goog_arm_qcom.bin</code></pre>
+<p>The filename must match your actual backup. If you named it <code>esp32s3-backup.bin</code>, use that name instead. Do not add an erase command or force/protection-bypass flags.</p>
+<p>Wait for writing and verification to finish successfully. Reconnect power only after completion, reconnect the browser, and check the physical display and controls. The restored startup program may run and access Wi-Fi immediately.</p>
+<h2>If something fails</h2>
+<p>Check the port, cable and serial ownership. For transfer errors, retry with <code>--baud 115200</code>. Stop on secure-boot, encryption or compatibility errors and consult your administrator and the <a href="https://docs.espressif.com/projects/esptool/en/latest/esp32s3/esptool/basic-commands.html" target="_blank" rel="noopener noreferrer">official esptool command reference</a>; protected devices need a device-specific recovery plan.</p></main>
+<footer><a href="../#project">Return to your Python project</a> · <a href="../#appendix">Hardware &amp; 3D prints</a></footer></body></html>

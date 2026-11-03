@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Share projects with p.arm.com | CrowPanel lab appendix</title><style>body{margin:0;background:#f4f6f8;color:#152631;font:17px/1.65 system-ui,sans-serif}header,main,footer{max-width:850px;margin:auto;padding:24px}header{border-bottom:1px solid #c7d2d9}nav{display:flex;gap:12px 24px;flex-wrap:wrap}a{color:#006b86;text-underline-offset:3px}a:focus-visible{outline:3px solid #c46a18;outline-offset:4px}main{background:white;margin:24px auto;border-radius:12px;padding:32px;box-sizing:border-box}h1{font-size:clamp(28px,5vw,42px);line-height:1.2}h2{font-size:23px;margin-top:32px}.lead{font-size:20px}.eyebrow{color:#506574;text-transform:uppercase;letter-spacing:.1em;font-size:13px}.note{padding:16px;background:#eef5f8;border-left:4px solid #007a95}li{margin:12px 0}pre{overflow:auto;padding:18px;background:#122c39;color:#f1f7fa;border-radius:6px;font-size:14px}code{overflow-wrap:anywhere}pre code{overflow-wrap:normal}footer{font-size:14px}@media(max-width:600px){main{margin:12px;padding:20px}header,footer{padding:20px}}</style></head>
+<body><header><a href="../#appendix">← CrowPanel lab appendix</a><nav aria-label="Appendix pages"><a href="./share-projects.html" aria-current="page">Share projects with p.arm.com</a> <a href="./codex-setup.html">Install Codex and configure access</a> <a href="./flash-backup.html">Back up and restore ESP32 flash</a></nav></header>
+<main id="content"><p class="eyebrow">Optional appendix · outside the two-hour course</p><h1>Share projects with p.arm.com</h1>
+<p class="lead">Give another workshop learner a link to your project so they can copy it, edit it and try it on their own board.</p>
+<h2>Prepare a shareable copy</h2>
+<ol><li>Download your Python project from the workshop editor and keep a local copy.</li>
+<li>Remove Wi-Fi passwords, API keys, personal information and device identifiers. Use placeholders or the public workshop network settings instead.</li>
+<li>Add a short description: what it does, which board/controller it needs, required workshop libraries, and how the buttons work. State whether it runs in RAM or starts as <code>main.py</code>.</li></ol>
+<h2>Paste and share</h2>
+<ol><li>Open <a href="https://p.arm.com" target="_blank" rel="noopener noreferrer">p.arm.com (opens in a new tab)</a> using your approved Arm access.</li>
+<li>Paste the sanitized source, give it a descriptive title if the service offers one, and create the paste using the site's controls.</li>
+<li>Check the access and expiry options shown by the service, then copy its share link and send it to your intended recipients.</li>
+<li>Ask the recipient to open the link using their approved access, copy the Python into the workshop editor, review it, and choose <strong>Run in RAM</strong>.</li></ol>
+<p class="note">p.arm.com is an Arm service; access may require the corporate network or authentication. This public codelab does not grant access or guarantee a paste's visibility or retention. Follow Arm's sharing policy. The service's current UI could not be verified from this public documentation environment.</p>
+<h2>Help others reproduce it</h2>
+<p>Include any required supporting files or links to their public sources. A single pasted script does not automatically include images, certificates or libraries. Never share a full flash backup through a paste: it can contain credentials and private device data.</p></main>
+<footer><a href="../#project">Return to your Python project</a> · <a href="../#appendix">Hardware &amp; 3D prints</a></footer></body></html>

@@ -165,6 +165,12 @@
   and `WIFI_PASSWORD = ""` defaults for open workshop Wi-Fi; no wifi_config.py
   dependency. There is no separate app Wi-Fi form. Private replacements are
   visible in the editor and downloads; never browser storage or logs.
+- The archived Stocks editor imports `device/projects/stock-ticker/ram/04_stocks.py`
+  rather than the retained one-shot example. Defaults ARM/QCOM/GOOG; wheel selects
+  cached quotes, Menu queues refreshes with a 60-second cooldown, automatic checks
+  run every 15 minutes. NTP is required despite the browser's initial UTC seed.
+  Preserve HTTPS, stale markers, fresh panel objects, Wi-Fi off while drawing and
+  ten seconds after completed refreshes. Startup saving remains explicitly opt-in.
 - `device/examples/`: learner-editable Python scripts, run in RAM by default.
 - `device/examples/05_inputs.py`: display-independent five-control diagnostic;
   standalone facilitator troubleshooting, not a separate course route;
