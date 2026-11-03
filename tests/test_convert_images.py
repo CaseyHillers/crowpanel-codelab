@@ -96,11 +96,14 @@ class CliTests(unittest.TestCase):
             result = self.run_cli("--demo", cwd=directory)
             self.assertEqual(result.returncode, 0, result.stderr)
             generated = Path(directory, "device", "slides.py").read_bytes()
+            self.assertNotIn(b"\r", generated)
             self.assertEqual(generated, (ROOT / "device" / "slides.py").read_bytes())
 
     def test_paths_preserve_order_and_escape_names(self):
         with tempfile.TemporaryDirectory() as directory:
-            first = Path(directory, 'first"\\image\t鸦.png')
+            # Exercise real paths using names supported by Windows as well.
+            # Arbitrary quotes/control characters are covered by the renderer tests.
+            first = Path(directory, "first image '鸦.png")
             second = Path(directory, "second.png")
             Image.new("RGB", (250, 100), "white").save(first)
             Image.new("RGB", (250, 100), "black").save(second)
