@@ -21,7 +21,8 @@ print("Connecting to Wi-Fi (credentials hidden)...")
 station = connect(WIFI_SSID, WIFI_PASSWORD, timeout=15)
 print("Wi-Fi connected. Using the device clock set before this run; no NTP.")
 print("Fetching Sabre Springs weather over verified HTTPS...")
-current = fetch_weather()
+# Allow the same bounded HTTPS budget as the stock ticker, including TLS.
+current = fetch_weather(timeout=30)
 panel = CrowPanel(controller="jd79661")
 panel.text("Sabre Springs", 8, 8)
 panel.text("%.1f F / feels %.1f F" % (

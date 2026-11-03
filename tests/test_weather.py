@@ -469,7 +469,7 @@ class WeatherExampleTests(unittest.TestCase):
         output = self.run_sample()
         self.assertEqual(self.operations.mock_calls[:3], [
             call.connect("Guest-AccessNG", "", timeout=15),
-            call.fetch_weather(),
+            call.fetch_weather(timeout=30),
             call.CrowPanel(controller="jd79661"),
         ])
         self.operations.sync_time.assert_not_called()
@@ -480,7 +480,7 @@ class WeatherExampleTests(unittest.TestCase):
         self.operations.sync_time.side_effect = OSError("NTP blocked")
         self.run_sample()
         self.operations.sync_time.assert_not_called()
-        self.operations.fetch_weather.assert_called_once_with()
+        self.operations.fetch_weather.assert_called_once_with(timeout=30)
         self.operations.CrowPanel.return_value.show.assert_called_once_with()
 
     def test_connection_failure_prevents_fetch_and_display(self):

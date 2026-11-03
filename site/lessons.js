@@ -163,6 +163,7 @@ export const lessons = [
       <p>Register your device using its <a href="#mac">station MAC</a> first. The sample uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
       <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required; HTTPS certificate verification stays enabled.</p>
+      <p>The request allows 30 seconds for DNS, connection, TLS and response reading. If the console reports a TLS handshake/request write timeout, the request did not complete; that message does not establish whether certificate validation finished.</p>
       <h2>Make it your own</h2>
       <p>Create weather visuals: use <code>weather_code</code> to draw a sun, clouds or rain alongside the readings. Or combine this with the <a href="#stocks">stock watchlist</a> in one project, switching between cached screens with the wheel. Keep network requests bounded and leave stable viewing time after each completed refresh.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
