@@ -26,7 +26,7 @@ Only if requested: stocks WIFI_SSID="Guest-AccessNG", WIFI_PASSWORD="" (open, re
 from wifi_config import SSID, PASSWORD
 from stocks import connect, fetch_quote, format_quote_time
 connect(SSID, PASSWORD); quote = fetch_quote()
-Stocks Run seeds UTC RTC over USB; no NTP. Standalone: set RTC.
+One-shot: USB seeds UTC; standalone: set RTC. Archived watchlist needs NTP.
 NASDAQ:ARM USD, TradingView; keys symbol,price,currency,quote_time,delay_minutes,source. format_quote_time(quote): UTC quote minute, not fetch time. Show delay_minutes/source; fetch once, no polling or live-price promise. Preserve HTTPS certificate verification and clock sync; never disable verification.
 Optional slides:
 from slides import SLIDES, WIDTH, HEIGHT, STRIDE
