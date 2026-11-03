@@ -236,7 +236,7 @@ test("Finish keeps credential cleanup, explicit autostart and safe battery proje
   assert.match(finish, /Remove private Wi-Fi credentials from drafts, downloads and any device files/i);
   assert.match(finish, /Stop, then Disconnect/i);
   assert.match(finish, /Drafts disappear when this tab closes/i);
-  assert.match(finish, /Save as main\.py only when ready.*overwrites the boot program.*every reset/i);
+  assert.match(finish, /Save as main\.py only when ready.*overwrites the previous startup application.*every normal power-up or reset/i);
   assert.match(finish, /Keep USB access to interrupt with Ctrl-C/i);
   assert.match(finish, /not a forensic secure erase/i);
 });
