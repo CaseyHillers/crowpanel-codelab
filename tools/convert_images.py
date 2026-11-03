@@ -165,7 +165,9 @@ def main(argv=None):
                 slides.append((path.stem, ImageOps.exif_transpose(image).copy()))
         module = render_module(slides)
         arguments.output.parent.mkdir(parents=True, exist_ok=True)
-        arguments.output.write_text(module, encoding="utf-8")
+        # Keep generated modules byte-identical on Windows and Unix.
+        with arguments.output.open("w", encoding="utf-8", newline="\n") as output:
+            output.write(module)
     except (OSError, ValueError, Image.DecompressionBombError) as error:
         parser.error(str(error))
     return 0
