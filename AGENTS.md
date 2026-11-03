@@ -57,6 +57,10 @@
   project without claiming those ideas are implemented starter features.
   Keep the total at 120 minutes. Code lessons prioritize the editor; guide
   lessons hide it. No general completion tracking or automatic hardware PASS.
+  Use compact numbered steps, teal Run in RAM/actions, amber cautions and a dark
+  serial console; keep operational details expandable and core warnings visible.
+  Keep the repository source link at the bottom of navigation. Visual changes
+  preserve editor focus, drafts, storage rules and explicit device actions.
   Board check requires five observed complete cycles, a successful display
   marker and explicit user confirmation of the physical party screen before
   browser confetti. Keep browser emoji indicators as observations, not proof.

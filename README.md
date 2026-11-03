@@ -139,6 +139,11 @@ if editor initialization fails. Brief tasks and expected results sit alongside;
 longer troubleshooting stays in disclosures. The USB diagram and display-change
 illustration are guides, not live hardware output.
 
+Compact numbered steps lead to the teal **Run in RAM** action; amber callouts
+highlight cautions, and the dark serial console shows device output. Operational
+details stay expandable. **View source on GitHub** sits at the bottom of the
+navigation and opens this repository in a new tab.
+
 The editor's file selector opens bundled workshop scripts, Python libraries and
 trust certificates in the same workspace. These are the site's bundled sources
 with edits held in tab memory, not a listing or download of files currently on
