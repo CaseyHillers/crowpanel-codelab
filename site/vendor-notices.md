@@ -36,7 +36,7 @@ The dealt IBM Plex faces are intentionally not downloaded or bundled: no local
 font assets were available, and reliable enterprise/offline operation is the
 primary purpose. System UI and system monospace are an explicit typography
 exception. The UI makes no external font, image or analytics requests. Firmware
-downloads and device-side archived stock/weather requests are separate, explicit network
+downloads and device-side stock/weather starter requests are separate, explicit network
 operations. No stock photography, icon packs or third-party font files are
 bundled. Local macOS setup screenshots supplied by Casey Hillers are included;
 their provenance is recorded in `guides/macos/README.md`.
@@ -61,7 +61,7 @@ It never automatically runs source or verifies hardware output. Board check,
 Advanced install and Reset device reinstall bundled originals, replacing
 customized workshop copies on the board.
 
-Archived stock lesson defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
+Stocks starter defaults are inline `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""` for the open workshop network, not a separate config file.
 There is no separate app Wi-Fi form. Optional private credentials edited into
 the code are visible in the editor and included in downloads; never put them in
@@ -71,8 +71,9 @@ Device files are plaintext and USB-readable; deletion is not forensic erasure.
 
 The 120-minute course has one Board check, then 30-minute automatic Snake with
 a TODO scaffold and full solution, station MAC, slideshow, Bluetooth desk message
-and Finish. Weather and Stocks appear in a separate archived section at the
-bottom, excluded from the 120 minutes. Station MAC remains available; Wi-Fi
+and Finish. Weather and Stocks appear in a separate starter projects section at
+the bottom, excluded from the 120 minutes. Extension ideas include stock-price
+graphs, weather visuals and a combined desk display. Station MAC remains available; Wi-Fi
 registration is not needed for Bluetooth.
 Hello and the standalone display-independent input diagnostic are not separate
 course routes. Browser emoji indicators observe input cycles; confetti requires
@@ -111,13 +112,17 @@ once, including without firmware Bluetooth support. Existing learners install
 the latest seven workshop files through Board check → Advanced install, not
 reflash. Managed-browser restrictions must be respected.
 
-## Archived ARM quote source and trust certificate
+## Stocks starter quote source and trust certificate
 
-The archived Stocks lesson makes one verified HTTPS request to TradingView's
-public website endpoint and one display refresh per run, without background
-polling or an API key. It shows the last available NASDAQ:ARM one-minute quote
+The Stocks editor uses `device/projects/stock-ticker/ram/04_stocks.py`, a key-free
+watchlist that makes verified HTTPS requests to TradingView's public website
+endpoint. ARM, QCOM and GOOG are the default symbols. The wheel selects cached
+quotes, Menu queues checks with a 60-second cooldown, and automatic checks run
+every 15 minutes. Each quote shows the last available NASDAQ one-minute price
 in USD, its provider minute timestamp in UTC and the reported delay. The
 observed source uses a 15-minute delay; this is not a promise of real-time data.
+The original one-request, one-refresh example remains in
+`device/examples/04_stocks.py` for reference.
 The website endpoint may rate-limit or change and is not a guaranteed stable
 official API. Source provenance:
 
@@ -134,9 +139,12 @@ https://www.amazontrust.com/repository/AmazonRootCA1.pem, SHA-256 fingerprint
 `8ECDE6884F3D87B1125BA31AC3FCB13D7016DE7F57CC904FE1CB97C6AE98196E`.
 Host HTTPS verification succeeded against this root on October 30, 2026; this
 does not establish Wi-Fi or physical display operation on the learner's board.
-Archived Stocks and Weather set UTC from the computer over USB before Run in
-RAM, so they do not need NTP and retain HTTPS verification. `#weather` opens
-the separate archived Weather lesson; neither project counts toward the course.
+Stocks and Weather set UTC from the computer over USB before Run in RAM and
+retain HTTPS verification. The Stocks watchlist also requires NTP before its
+first request and resynchronizes on a fetch cycle at least six hours later.
+Weather and the reference one-shot Stocks example do not require NTP; standalone
+use needs an accurate UTC RTC set separately after loss of power. `#weather`
+opens the separate Weather starter; neither project counts toward the course.
 
 ## Hardware introduction
 

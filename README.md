@@ -72,9 +72,10 @@ this repository. The initial lockfile was downloaded using registry.npmmirror.co
 | Bluetooth desk message | 20 | Send a short message from the browser to the display without Wi-Fi |
 | Finish | 10 | Explore future projects, download work, remove private credentials and disconnect |
 
-Weather and ARM stock price are archived projects at the bottom of the sidebar,
-outside the two-hour course. Station MAC stays in the course; Wi-Fi registration
-is optional for the Bluetooth project.
+Weather and Stocks are starter projects at the bottom of the sidebar, outside
+the two-hour course. Extend them with a stock-price graph, weather illustrations,
+or a combined weather-and-stocks desk display. Station MAC stays in the course;
+Wi-Fi registration is optional for the Bluetooth project.
 
 The welcome page keeps the 3D parallax hardware story. Host preparation comes
 next; factory verification precedes any firmware erase. Already-MicroPython
@@ -381,7 +382,7 @@ use the editor's explicitly confirmed **Write selected file to device** action.
   The `scanner.tradingview.com` chain verified against this root on October 30,
   2026. Renew trust material if the provider changes chains; keep verification enabled.
 - `device/examples/`: the Board check, Snake TODO scaffold and full solution,
-  station MAC, slideshow and desk-message scripts, plus archived stocks/weather,
+  station MAC, slideshow and desk-message scripts, plus stocks/weather starters,
   diagnostics and Hello.
 
 ### Send a message to your desk
@@ -417,9 +418,9 @@ API references: [MicroPython Bluetooth](https://docs.micropython.org/en/latest/l
 [Chrome Web Bluetooth](https://developer.chrome.com/docs/capabilities/bluetooth),
 and [MDN Web Bluetooth](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API).
 
-### Archived Wi-Fi projects
+### Wi-Fi starter projects
 
-The archived ARM stock lesson uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
+The Stocks starter uses editable inline defaults `WIFI_SSID = "Guest-AccessNG"` and
 `WIFI_PASSWORD = ""`; the empty password means an open network. The exercise
 does not read `wifi_config.py`; there is no separate app Wi-Fi form.
 Learners may enter private credentials for another approved network, but those
@@ -432,10 +433,10 @@ access permits reading device files; this is not a secrets vault. Saving
 
 Wi-Fi examples use 2.4 GHz Personal/open networks. Enterprise 802.1X and captive
 portal login are not implemented. Registering a MAC alone does not guarantee
-corporate-network compatibility. Archived Weather and Stocks **Run in RAM** set the
+corporate-network compatibility. Weather and Stocks **Run in RAM** set the
 board's UTC RTC from the computer over USB before executing the editor source.
 The one-shot examples do not require NTP, which guest networks may block. The
-archived Stocks editor now uses the watchlist package and requires NTP before
+Stocks editor uses the watchlist package and requires NTP before
 its first quote request, with later resynchronization. Keep the computer's
 clock correct; HTTPS certificate and stale-clock checks remain enabled. No
 firmware reinstall is needed. Existing learners must install the latest stock
@@ -448,7 +449,7 @@ are rejected rather than accepted unsafely.
 
 ### ARM quote source and timestamp
 
-The archived Stocks lesson uses `device/projects/stock-ticker/ram/04_stocks.py`.
+The Stocks starter uses `device/projects/stock-ticker/ram/04_stocks.py`.
 Edit its `WATCHLIST` (ARM, QCOM and GOOG by default); the wheel selects cached
 quotes, Menu queues a check with a 60-second cooldown, and all symbols are
 checked every 15 minutes. Back exits. NTP and verified HTTPS are required.
@@ -476,9 +477,10 @@ On October 30, 2026, a host request using HTTP/1.0, `stocks_ca.pem` and
 `Accept-Encoding: identity` received a 160-byte JSON response with Content-Length.
 This does not verify the Wi-Fi request or physical display on a board.
 
-The stock sample allows one shared 30-second HTTPS budget for DNS, TCP, TLS,
-request writing and response reading; it never retries automatically. The
-resolver retains its own firmware timeout, which can overrun this budget before
+Each stock ticker request allows one shared 30-second HTTPS budget for DNS, TCP,
+TLS, request writing and response reading; the request itself does not retry.
+The ticker schedules later checks every 15 minutes. The resolver retains its
+own firmware timeout, which can overrun this budget before
 returning. Timeout errors identify DNS, TCP, TLS handshake/request write or
 response read when the shared deadline is checked. The first nonblocking TLS
 write may still be performing the handshake, so a write-stage timeout does not
@@ -486,7 +488,7 @@ prove that certificate validation succeeded. Keep certificate verification on.
 Power-cycle before comparing Wi-Fi networks: the current connect helper can
 reuse an existing association even if the edited SSID differs.
 
-The `#weather` and `#stocks` links open their separate archived lessons.
+The `#weather` and `#stocks` links open their separate, untimed starter projects.
 The `04_weather.py` example remains outside the timed course; its data is
 for Sabre Springs, San Diego (32.9528, -117.094), with Fahrenheit, mph and Los
 Angeles local time.
