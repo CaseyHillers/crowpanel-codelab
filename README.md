@@ -583,3 +583,7 @@ Its ports include third-party components with their own licenses, referenced in
 that license file and the upstream ESP-IDF source. npm dependency license files
 are copied into the distribution by the build script. See also
 `site/vendor-notices.md` for interface and runtime provenance.
+
+## Optional stock watchlist
+
+See [the key-free stock ticker project](device/projects/stock-ticker/README.md) for complete RAM and opt-in startup versions, an editable ARM/QCOM/GOOG watchlist, wheel navigation, Menu refresh and 15-minute automatic checks. Quotes can be delayed; this is not a real-time trading feed. The project includes offline validation and observed JD79661 refresh-workaround findings.
