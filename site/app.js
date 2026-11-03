@@ -319,7 +319,7 @@ function renderLesson({ focus = false } = {}) {
   const sample = samples[next.sample];
   byId("lesson-title").textContent = isAppendix ? "Hardware & 3D prints" : next.title;
   byId("lesson-duration").hidden = isAppendix || next.id === "project";
-  byId("lesson-duration").textContent = next.archived ? "Archived · outside the course" : `${next.minutes} min`;
+  byId("lesson-duration").textContent = next.archived ? "Starter project · outside the course" : `${next.minutes} min`;
   byId("lesson-summary").textContent = isAppendix ? "The full CAD explorer and optional desk-kit print files. Outside the timed course." : next.summary;
   const isWelcome = !isAppendix && next.id === "welcome";
   const isCode = !isAppendix && next.layout === "code";

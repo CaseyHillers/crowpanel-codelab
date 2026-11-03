@@ -113,6 +113,15 @@ export const lessons = [
     id: "finish", title: "What will you build next?", navTitle: "Next projects & cleanup", minutes: 10, sample: "snake", layout: "guide",
     summary: "A small screen, a lot of possibilities.",
     content: `
+      <h2>Build on a starter project</h2>
+      <p>Start with the working <a href="#stocks">stock watchlist</a> or <a href="#weather">weather display</a>, then make it your own. Both are available under Starter projects, outside the two-hour course.</p>
+      <ul>
+        <li><strong>Make a stock ticker graph.</strong> Keep a bounded history of fetched quotes and plot the price over time. Label the provider timestamps and delayed data.</li>
+        <li><strong>Create weather visuals.</strong> Draw a sun, clouds or rain from the weather code, with temperature and humidity alongside.</li>
+        <li><strong>Combine them into one project.</strong> Use the wheel to switch between weather and cached stock quotes, or draw both on one screen.</li>
+      </ul>
+      <p>Keep requests bounded and respect provider limits. Leave stable viewing time after each completed e-paper refresh.</p>
+      <h2>More project ideas</h2>
       <ul class="project-ideas">
         <li><span aria-hidden="true">🔔</span><div><strong>Desktop notifications</strong><p>A local USB helper sends a quiet status update from your computer.</p></div></li>
         <li><span aria-hidden="true">📅</span><div><strong>Calendar viewer</strong><p>Show your next meeting from an approved calendar feed. Keep tokens private.</p></div></li>
@@ -148,12 +157,14 @@ export const lessons = [
   },
   {
     id: "weather", title: "Put the weather on your desk", navTitle: "Weather", minutes: 20, archived: true, sample: "weather", layout: "code",
-    summary: "Archived Wi-Fi project · Sabre Springs weather.",
+    summary: "Starter project · Sabre Springs weather to make your own.",
     content: `
-      <p class="lesson-note">Archived Wi-Fi project · outside the two-hour course. Corporate networks may restrict this connection.</p>
+      <p class="lesson-note">Starter project · outside the two-hour course. Corporate networks may restrict this connection.</p>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The sample uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
       <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
       <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required; HTTPS certificate verification stays enabled.</p>
+      <h2>Make it your own</h2>
+      <p>Create weather visuals: use <code>weather_code</code> to draw a sun, clouds or rain alongside the readings. Or combine this with the <a href="#stocks">stock watchlist</a> in one project, switching between cached screens with the wheel. Keep network requests bounded and leave stable viewing time after each completed refresh.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
       <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
   },
@@ -161,7 +172,7 @@ export const lessons = [
     id: "stocks", title: "Put ARM’s stock price on your desk", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
     summary: "ARM, QCOM and GOOG · wheel selection · Menu refresh · 15-minute checks.",
     content: `
-      <p class="lesson-note">Archived Wi-Fi project · outside the two-hour course.</p>
+      <p class="lesson-note">Starter project · outside the two-hour course.</p>
       <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>NASDAQ watchlist</span><span>→</span><span>Display USD</span></div>
       <p>Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code> near the top before running. Use one to ten uppercase NASDAQ symbols. The wheel scrolls through cached quotes; no request is made just to select another stock.</p>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
@@ -170,6 +181,8 @@ export const lessons = [
       <p>Use <strong>Run in RAM</strong>. The ticker checks all symbols on start and every <strong>15 minutes</strong>. Press <strong>Menu</strong> to request another check; repeated requests coalesce with a <strong>60-second cooldown</strong>. Menu restarts the automatic schedule. <strong>Back</strong> exits; the browser’s <strong>Stop</strong> interrupts the run.</p>
       <p>The wheel selects cached quotes. Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. Failed checks retain the last quote and mark it stale.</p>
       <p>Run in RAM seeds UTC from your computer over USB, but this ticker also requires <strong>NTP clock synchronization</strong> before the first request and resynchronizes on a fetch cycle at least six hours later. Your approved network must allow NTP and verified HTTPS. Check your computer’s date and time; never disable TLS verification to work around a clock or certificate error.</p>
+      <h2>Make it your own</h2>
+      <p>Make a stock ticker graph: keep a bounded history of fetched quotes and draw the price over time, preserving provider timestamps and the delay label. Keep the 15-minute checks and refresh spacing. Or combine the watchlist with the <a href="#weather">weather display</a> in one project, using the wheel to switch between cached screens.</p>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
       <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and NTP access. Clock synchronization failure prevents fetching; the script retries after 15 minutes, or on a Menu request once the cooldown ends. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>Each HTTPS request has a 30-second timeout; DNS uses the firmware resolver. A certificate error must not be bypassed. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. Read the console and try again later; never substitute an invented price. Quotes can remain unchanged outside market hours.</p></details>
