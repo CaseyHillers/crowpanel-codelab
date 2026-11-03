@@ -1,7 +1,7 @@
 import mac from "../device/examples/01_mac.py?raw";
 import snake from "../device/examples/02_snake.py?raw";
 import slideshow from "../device/examples/03_slideshow.py?raw";
-import stocks from "../device/examples/04_stocks.py?raw";
+import stocks from "../device/projects/stock-ticker/ram/04_stocks.py?raw";
 import weather from "../device/examples/04_weather.py?raw";
 import message from "../device/examples/04_desk_message.py?raw";
 import project from "../device/examples/my_project.py?raw";
@@ -148,18 +148,21 @@ export const lessons = [
   },
   {
     id: "stocks", title: "Put ARM’s stock price on your desk", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
-    summary: "Guest-AccessNG → NASDAQ:ARM → your display.",
+    summary: "ARM, QCOM and GOOG · wheel selection · Menu refresh · 15-minute checks.",
     content: `
       <p class="lesson-note">Archived Wi-Fi project · outside the two-hour course.</p>
-      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>ARM quote</span><span>→</span><span>Display USD</span></div>
+      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>NASDAQ watchlist</span><span>→</span><span>Display USD</span></div>
+      <p>Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code> near the top before running. Use one to ten uppercase NASDAQ symbols. The wheel scrolls through cached quotes; no request is made just to select another stock.</p>
       <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
-      <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
-      <p>The display shows ARM’s <strong>NASDAQ</strong> quote in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. Quotes are <strong>delayed by 15 minutes</strong>, not real-time. The timestamp marks the last available one-minute bar in UTC; it can be from an earlier session when the market is closed.</p>
-      <p>This script fetches once and refreshes the display once; no automatic polling. It allows up to 30 seconds for the HTTPS request, including DNS, connection setup and TLS. Change a label or the layout, then use <strong>Run in RAM</strong> again when you want another quote.</p>
-      <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required on the guest network; HTTPS certificate verification stays enabled.</p>
+      <p>For another approved network, edit those two variables. Private secrets should instead use existing device-local configuration; never include them in shared code.</p>
+      <p>The display shows ARM and the other selected <strong>NASDAQ</strong> quotes in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. The tested feed is <strong>delayed by 15 minutes</strong>, not real-time. Each quote shows its reported delay and last available one-minute bar in UTC, separately from the check time; it can be from an earlier session when the market is closed.</p>
+      <p>Use <strong>Run in RAM</strong>. The ticker checks all symbols on start and every <strong>15 minutes</strong>. Press <strong>Menu</strong> to request another check; repeated requests coalesce with a <strong>60-second cooldown</strong>. Menu restarts the automatic schedule. <strong>Back</strong> exits; the browser’s <strong>Stop</strong> interrupts the run.</p>
+      <p>The wheel selects cached quotes. Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. Failed checks retain the last quote and mark it stale.</p>
+      <p>Run in RAM seeds UTC from your computer over USB, but this ticker also requires <strong>NTP clock synchronization</strong> before the first request and resynchronizes on a fetch cycle at least six hours later. Your approved network must allow NTP and verified HTTPS. Check your computer’s date and time; never disable TLS verification to work around a clock or certificate error.</p>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately; they cannot read your computer’s clock on their own. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>A TLS handshake/request write timeout means no verified response was received; a longer wait does not guarantee success. A certificate error must not be bypassed. If comparing networks, power-cycle the board before switching to your hotspot so an existing Wi-Fi association is not reused. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. If a request fails, read the console and try again later; never substitute an invented price. The quote timestamp describes the data’s minute, not the time you clicked Run.</p></details>`,
+      <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and NTP access. Clock synchronization failure prevents fetching; the script retries after 15 minutes, or on a Menu request once the cooldown ends. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>Each HTTPS request has a 30-second timeout; DNS uses the firmware resolver. A certificate error must not be bypassed. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. Read the console and try again later; never substitute an invented price. Quotes can remain unchanged outside market hours.</p></details>
+      <details><summary>Run at startup instead?</summary><p>The editor sample runs in RAM and does not install itself. To start on power-up, back up your existing main.py and explicitly choose <strong>Save as main.py</strong>; this replaces your previous startup application. The ticker sets UTC using NTP after boot. Keep a local source backup before switching projects.</p></details>`,
   },
 ];
 
