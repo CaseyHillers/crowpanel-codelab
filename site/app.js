@@ -433,6 +433,10 @@ for (const lesson of lessons) {
   const number = document.createElement("span");
   number.className = "step-number";
   number.textContent = lesson.archived ? "·" : String(coreLessons.indexOf(lesson) + 1);
+  if (lesson.id === "weather" || lesson.id === "stocks") {
+    const iconName = lesson.id === "weather" ? "weather" : "chart";
+    number.innerHTML = `<svg class="ui-icon" aria-hidden="true"><use href="#icon-${iconName}"/></svg>`;
+  }
   number.setAttribute("aria-hidden", "true");
   const title = document.createElement("span");
   title.textContent = lesson.navTitle;

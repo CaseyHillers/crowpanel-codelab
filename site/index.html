@@ -9,6 +9,20 @@
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+      <symbol id="icon-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-14-2 18"/></symbol>
+      <symbol id="icon-usb" viewBox="0 0 24 24"><path d="M12 20V4m-3 3 3-3 3 3M12 15l-6-4V8m6 10 6-4v-3"/><circle cx="12" cy="20" r="2"/><circle cx="6" cy="6" r="2"/><path d="M16 7h4v4h-4z"/></symbol>
+      <symbol id="icon-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></symbol>
+      <symbol id="icon-weather" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M9 1v2m0 10v2M2 8H0m16 0h2M4 3 2.5 1.5m11 1.5L15 1.5M7 21h11a4 4 0 0 0 0-8 5 5 0 0 0-9-1 4.5 4.5 0 0 0-2 9Z"/></symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M6 15l5-5 4 3 6-8m-5 0h5v5"/></symbol>
+      <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-7 5 8"/></symbol>
+      <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M5 17h14l-2-4V9a5 5 0 0 0-10 0v4Zm5 4h4M12 2v2"/></symbol>
+      <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18m-14 4h3m4 0h3m-10 3h3"/></symbol>
+      <symbol id="icon-battery" viewBox="0 0 24 24"><rect x="2" y="6" width="18" height="12" rx="2"/><path d="M23 10v4M6 9v6m4-6v6m4-6v6"/></symbol>
+      <symbol id="icon-build" viewBox="0 0 24 24"><circle cx="6" cy="5" r="3"/><circle cx="18" cy="12" r="3"/><circle cx="6" cy="19" r="3"/><path d="M6 8v8m3-11h4a5 5 0 0 1 5 4"/></symbol>
+      <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M20 3C8 1 2 8 5 15s15 5 15-12ZM4 21l11-12"/></symbol>
+      <symbol id="icon-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-1.9c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15.99 1.69 2.6 1.2 3.23.92.1-.72.39-1.2.7-1.48-2.47-.28-5.07-1.24-5.07-5.5 0-1.22.44-2.22 1.14-3-.11-.28-.49-1.42.11-2.95 0 0 .93-.3 3.05 1.14a10.6 10.6 0 0 1 5.56 0c2.12-1.44 3.05-1.14 3.05-1.14.6 1.53.22 2.67.11 2.95.71.78 1.14 1.78 1.14 3 0 4.27-2.6 5.21-5.08 5.49.4.35.75 1.02.75 2.06V22c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/></symbol>
+    </defs></svg>
     <a class="skip-link" href="#lesson">Skip to lesson</a>
     <header class="topbar">
       <a class="brand" href="#welcome" aria-label="CrowPanel lab, welcome">
@@ -26,6 +40,7 @@
         <nav aria-labelledby="archived-title"><h2 id="archived-title" class="archive-title">Starter projects</h2><ol id="archived-lesson-list" class="lesson-list"></ol></nav>
         <a id="nav-appendix" class="appendix-link" href="#appendix">Appendix · Guides &amp; hardware</a>
         <p class="sidebar-note">Your board. Your code.<br>No build server needed.</p>
+        <a class="source-link" href="https://github.com/CaseyHillers/crowpanel-codelab" target="_blank" rel="noopener noreferrer"><svg class="ui-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>View source on GitHub<span class="sr-only"> (opens in a new tab)</span></span><span aria-hidden="true">↗</span></a>
       </aside>
       <main class="sheet" id="main">
         <div id="capability-warning" class="notice" role="status" hidden></div>
@@ -98,16 +113,16 @@
               <h2>2. Try every control</h2>
               <p>Copies the workshop files, then runs the check. No boot program is created.</p>
               <button id="starter-button" class="primary" type="button" data-hardware>Connect &amp; check board…</button>
-              <p id="starter-status" class="help" role="status">Press → release → ✅. Try all five within 60 seconds.</p>
+              <p id="starter-status" class="help" role="status">Press → release → ✅. Try all five within 60 seconds.</p> <!-- taste-skill-ignore: required hardware observation and physical-confirmation copy -->
               <ul class="starter-inputs" aria-label="Observed input events"><li data-input="Up" data-state="waiting">○ Up</li><li data-input="Down" data-state="waiting">○ Down</li><li data-input="Press" data-state="waiting">○ Press</li><li data-input="Menu" data-state="waiting">○ Menu</li><li data-input="Back" data-state="waiting">○ Back</li></ul>
               <section id="verification-result" class="verification-result" aria-labelledby="verification-result-title" hidden>
-                <h3 id="verification-result-title">🎉 Five controls detected!</h3>
+                <h3 id="verification-result-title">🎉 Five controls detected!</h3> <!-- taste-skill-ignore: required hardware observation and physical-confirmation copy -->
                 <p id="verification-display-help">Wait for the party screen on your e-paper display.</p>
                 <button id="confirm-display" type="button" disabled>I see the party screen</button>
-                <p id="verification-success" role="status" hidden>✅ Board verified. Time to make something!</p>
+                <p id="verification-success" role="status" hidden>✅ Board verified. Time to make something!</p> <!-- taste-skill-ignore: required hardware observation and physical-confirmation copy -->
                 <a id="start-coding" class="coding-link" href="#snake" hidden>Start coding Snake →</a>
               </section>
-              <p class="help">✅ means a press and release was received. Confirm the physical party screen to unlock Next. Stop ends the check early.</p>
+              <p class="help">✅ means a press and release was received. Confirm the physical party screen to unlock Next. Stop ends the check early.</p> <!-- taste-skill-ignore: required hardware observation and physical-confirmation copy -->
               <details><summary>Advanced: install libraries without running the demo</summary>
               <p>Connect device first. This only copies the seven workshop files.</p>
               <button id="install-button" type="button" data-device>Install 7 workshop files</button>
@@ -120,13 +135,13 @@
           </article>
           <section class="workspace" aria-label="Device workspace">
             <section class="connection" aria-labelledby="connection-title">
-              <div class="section-heading"><h2 id="connection-title">Device</h2><span id="connection-state" role="status">Disconnected</span></div>
+              <div class="section-heading"><h2 id="connection-title"><svg class="ui-icon" aria-hidden="true"><use href="#icon-usb"/></svg>Device</h2><span id="connection-state" role="status">Disconnected</span></div>
               <div class="connection-actions"><button id="connect-button" type="button" data-hardware>Connect device</button><button id="stop-button" type="button" disabled>Stop</button><button id="disconnect-button" type="button" disabled>Disconnect</button><button id="reset-device" class="danger" type="button" aria-describedby="reset-status" disabled>Reset device…</button></div>
               <p id="connection-help" class="help">USB serial · close other serial apps before connecting.</p>
               <p id="reset-status" class="help" role="status">Reset device deletes all device files and reinstalls workshop files. Confirmation required.</p>
             </section>
             <section class="editor-panel" aria-labelledby="editor-title">
-              <div class="section-heading"><h2 id="editor-title">Python editor</h2><span id="draft-state">Sample</span></div>
+              <div class="section-heading"><h2 id="editor-title"><svg class="ui-icon" aria-hidden="true"><use href="#icon-code"/></svg>Python editor</h2><span id="draft-state">Sample</span></div>
               <div class="workshop-file-picker"><label for="workshop-file-select">Workshop files</label><select id="workshop-file-select" aria-describedby="workshop-file-help"></select><p id="workshop-file-help" class="help">Bundled workshop source, not a live device file listing. File edits stay in this tab; download them to keep a copy.</p></div>
               <section id="project-files" class="project-files" aria-label="Your Python files" hidden>
                 <label for="project-select">Saved projects</label>
@@ -138,11 +153,13 @@
                 <p id="project-save-status" class="help" role="status">Not saved in this browser yet.</p>
                 <p id="project-save-error" class="action-error" role="alert" hidden></p>
               </section>
+              <div class="editor-toolbar">
               <div class="file-line"><span id="editor-filename">01_mac.py</span><button id="show-solution" class="text-button" type="button" hidden>Show full solution</button><button id="reset-editor" class="text-button" type="button">Reset sample</button></div>
+              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="download-button" type="button">Download .py</button><button id="write-workshop-file" type="button" data-device hidden>Write selected file to device…</button></div>
+              </div>
               <label class="sr-only" for="code-editor">Python source for the current lesson</label>
               <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-describedby="editor-help"></textarea>
               <p id="editor-help" class="help editor-help">Ctrl/⌘ + Enter to run · Tab moves focus · Edits stay in this tab; download to keep them.</p>
-              <div class="editor-actions"><button id="run-button" class="primary" type="button" data-device>Run in RAM</button><button id="download-button" type="button">Download .py</button><button id="write-workshop-file" type="button" data-device hidden>Write selected file to device…</button></div>
               <details id="project-prompts" class="save-details"><summary>Make something new with Codex</summary>
                 <p>Describe your idea. Copy a hardware-aware prompt into Codex, then paste its Python into this editor. Review it before running; this site never sends code to an AI service.</p>
                 <label for="project-idea">What should your board do?</label>
@@ -164,7 +181,7 @@
               <p id="desk-message-error" class="action-error" role="alert" hidden></p>
             </section>
             <section class="console-panel" aria-labelledby="console-title">
-              <div class="section-heading"><h2 id="console-title">Serial console</h2><div class="console-actions"><button id="copy-console" class="text-button" type="button" aria-label="Copy serial output">Copy</button><button id="clear-console" class="text-button" type="button">Clear</button></div></div>
+              <div class="section-heading"><h2 id="console-title"><svg class="ui-icon" aria-hidden="true"><use href="#icon-terminal"/></svg>Serial console</h2><div class="console-actions"><button id="copy-console" class="text-button" type="button" aria-label="Copy serial output">Copy</button><button id="clear-console" class="text-button" type="button">Clear</button></div></div>
               <pre id="console-output" tabindex="0" aria-label="Device output">Connect a board to see device output here.
 No code runs automatically.</pre>
               <p id="console-copy-status" class="action-status" role="status" aria-live="polite" aria-atomic="true"></p>

@@ -1,14 +1,8 @@
-"""Edit the Wi-Fi settings below for an approved 2.4 GHz network.
-
-An empty password selects the open workshop network (no Wi-Fi password).
-MAC registration does not add enterprise 802.1X support; captive portals
-are not handled. Do not share this script with private credentials in it.
-
-This optional example is outside the timed course. Paste it into the browser's
-Stocks lesson to set the RTC from your computer over USB before running.
-No NTP is needed. For standalone use, set
-machine.RTC to accurate UTC over USB first (again after loss of power), or use
-weather.sync_time() only on networks that permit NTP. HTTPS stays verified.
+"""Sabre Springs weather. Edit Wi-Fi settings for an approved 2.4 GHz network.
+Empty password = open network. No enterprise 802.1X or captive portals.
+Run in RAM in the Weather lesson sets UTC over USB; no NTP needed.
+Standalone use needs accurate machine.RTC after power loss, or sync_time()
+where NTP is allowed. Keep HTTPS verified; remove secrets before sharing.
 """
 
 from crowpanel import CrowPanel

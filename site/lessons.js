@@ -65,7 +65,7 @@ export const lessons = [
       </div>
       <ul class="control-map">
         <li>↑ Up <span>↺ Counterclockwise · 12→9</span></li><li>↓ Down <span>↻ Clockwise · 12→3</span></li>
-        <li>● Press <span>Start / replay</span></li><li>☰ Menu <span>Reset to ready</span></li>
+        <li>● Press <span>Start / replay</span></li><li>Menu <span>Reset to ready</span></li>
         <li>↩ Back <span>Exit</span></li>
       </ul>
       <p>Find <code>handle_input</code>. Fill the <code>TODO</code> sections, then <strong>Run in RAM</strong>. The comments show what to call. For Press, if <code>game.over</code>, call <code>game.restart()</code>; then return <code>(game.start(), False)</code> to start or replay.</p>
@@ -88,7 +88,7 @@ export const lessons = [
     id: "slideshow", title: "Control a slideshow", navTitle: "Slideshow", minutes: 15, sample: "slideshow", layout: "code",
     summary: "Three images. Two buttons. Make it your own.",
     content: `
-      <div class="lesson-flow"><span>↑ Previous</span><span>🖼️ Crow · Circuit · Summit</span><span>↓ Next</span></div>
+      <div class="lesson-flow"><span>↑ Previous</span><span><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"/></svg> Crow · Circuit · Summit</span><span>↓ Next</span></div>
       <p>Run, then try Up and Down. Change the starting image or add a caption.</p>
       <div class="expected-result">One press, one image. No refresh while idle.</div>
       <details><summary>How images work</summary><p>slides.py holds packed monochrome images. Re-run the Board check to install updated artwork. Create your own offline with tools/convert_images.py. Wait for each full refresh before the next press.</p></details>`,
@@ -97,16 +97,19 @@ export const lessons = [
     id: "message", title: "Send a message to your desk", navTitle: "Bluetooth message", minutes: 20, sample: "message", layout: "code",
     summary: "Type in your browser. Read it on your desk.",
     content: `
-      <p>No Wi-Fi and no internet connection are needed for this project. Keep the board connected by USB for power and to run its receiver.</p>
+      <p>No Wi-Fi and no internet connection needed. Keep USB connected for power and to run the receiver.</p>
+      <h2>Send your first message</h2>
       <ol class="task-steps">
-        <li>Choose <strong>Run in RAM</strong> to start the receiver. It shows a name such as <strong>Desk-ABC123</strong> on the board. Wait for that screen, then choose <strong>Choose Bluetooth board…</strong> in the message controls.</li>
-        <li>Select the <strong>same name shown on your physical display</strong>. Each nearby workshop board has its own name; do not choose someone else’s board.</li>
-        <li>Type a short message, choose <strong>Send message</strong>, and wait for the slow e-paper refresh. Check the actual screen: a browser acknowledgement does not prove the physical display updated.</li>
+        <li><strong>Start the receiver.</strong> Choose <strong>Run in RAM</strong>. Wait for a name such as <strong>Desk-ABC123</strong> on the board, then choose <strong>Choose Bluetooth board…</strong>.</li>
+        <li><strong>Match the board.</strong> Select the <strong>same name shown on your physical display</strong>, so you connect to your board.</li>
+        <li><strong>Send your text.</strong> Type a short message, choose <strong>Send message</strong>, and wait for the slow e-paper refresh.</li>
       </ol>
-      <p>Make it yours: edit <code>START_MESSAGE</code> in the Python sample, or change the text you send below. Plain English letters, numbers, punctuation and line breaks work; emoji and other non-ASCII characters need a custom font. Messages fit up to four wrapped lines of 28 characters, with 112 characters total.</p>
-      <p class="lesson-note">The receiver has a five-minute session. Use <strong>Run in RAM</strong> again after it ends. Press <strong>Back</strong> or choose <strong>Stop</strong> to end the receiver early. Disconnect Bluetooth only closes the browser’s link.</p>
-      <p class="lesson-note">Nearby people can send text while the receiver is running. Don’t send private messages, credentials or corporate information.</p>
+      <div class="expected-result">Check the actual screen: a browser acknowledgement does not prove the physical display updated.</div>
+      <p>Use ASCII letters, numbers, punctuation and line breaks: up to four wrapped lines of 28 characters, 112 total.</p>
+      <div class="lesson-callout"><strong>Five-minute session.</strong> Use <strong>Run in RAM</strong> again after it ends. Press <strong>Back</strong> or choose <strong>Stop</strong> to end early. Disconnect Bluetooth only closes the browser’s link.</div>
+      <p class="lesson-note">Nearby people can send text while the receiver runs. Don’t send private messages, credentials or corporate information.</p>
       <p class="lesson-note">Installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to add the message library; no firmware reflash.</p>
+      <p class="lesson-tip"><strong>Make it yours:</strong> edit <code>START_MESSAGE</code> or change the text you send below. Emoji and other non-ASCII characters need a custom font.</p>
       <details><summary>Bluetooth unavailable?</summary><p>Use desktop Chrome or Edge with Bluetooth enabled, on HTTPS or localhost. Browser support and managed-computer policy can restrict Web Bluetooth. Ask IT or a facilitator if it is blocked; do not bypass managed settings.</p><p>You can still customize the screen over USB: set <code>USE_BLUETOOTH = False</code>, edit <code>START_MESSAGE</code>, then choose <strong>Run in RAM</strong>. This draws your message once without Bluetooth. It does not test the Bluetooth connection.</p></details>`,
   },
   {
@@ -123,11 +126,11 @@ export const lessons = [
       <p>Keep requests bounded and respect provider limits. Leave stable viewing time after each completed e-paper refresh.</p>
       <h2>More project ideas</h2>
       <ul class="project-ideas">
-        <li><span aria-hidden="true">🔔</span><div><strong>Desktop notifications</strong><p>A local USB helper sends a quiet status update from your computer.</p></div></li>
-        <li><span aria-hidden="true">📅</span><div><strong>Calendar viewer</strong><p>Show your next meeting from an approved calendar feed. Keep tokens private.</p></div></li>
-        <li><span aria-hidden="true">🔋</span><div><strong>A cable-free desk display</strong><p>Try a USB battery pack with low-current support. For an internal battery, check the exact board manual, voltage, connector polarity and charging support first. Never connect a bare cell without verified protection.</p></div></li>
-        <li><span aria-hidden="true">🚦</span><div><strong>Build-status display</strong><p>Passed, running or needs attention—at a glance.</p></div></li>
-        <li><span aria-hidden="true">🌱</span><div><strong>Desk companion</strong><p>A focus timer, plant reminder or daily pixel-art postcard.</p></div></li>
+        <li><svg class="ui-icon" aria-hidden="true"><use href="#icon-bell"/></svg><div><strong>Desktop notifications</strong><p>A local USB helper sends a quiet status update from your computer.</p></div></li>
+        <li><svg class="ui-icon" aria-hidden="true"><use href="#icon-calendar"/></svg><div><strong>Calendar viewer</strong><p>Show your next meeting from an approved calendar feed. Keep tokens private.</p></div></li>
+        <li><svg class="ui-icon" aria-hidden="true"><use href="#icon-battery"/></svg><div><strong>A cable-free desk display</strong><p>Try a USB battery pack with low-current support. For an internal battery, check the exact board manual, voltage, connector polarity and charging support first. Never connect a bare cell without verified protection.</p></div></li>
+        <li><svg class="ui-icon" aria-hidden="true"><use href="#icon-build"/></svg><div><strong>Build-status display</strong><p>Passed, running or needs attention—at a glance.</p></div></li>
+        <li><svg class="ui-icon" aria-hidden="true"><use href="#icon-leaf"/></svg><div><strong>Desk companion</strong><p>A focus timer, plant reminder or daily pixel-art postcard.</p></div></li>
       </ul>
       <p><a href="#project">Continue in Your project</a> to save your own Python files in this browser.</p>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>
@@ -156,36 +159,43 @@ export const lessons = [
       </details>`,
   },
   {
-    id: "weather", title: "Put the weather on your desk", navTitle: "Weather", minutes: 20, archived: true, sample: "weather", layout: "code",
-    summary: "Starter project · Sabre Springs weather to make your own.",
+    id: "weather", title: "Weather for your desk", navTitle: "Weather", minutes: 20, archived: true, sample: "weather", layout: "code",
+    summary: "Temperature, humidity and wind for Sabre Springs.",
     content: `
-      <p class="lesson-note">Starter project · outside the two-hour course. Corporate networks may restrict this connection.</p>
-      <p>Register your device using its <a href="#mac">station MAC</a> first. The sample uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
-      <p>For another approved network, edit those two variables. Run once and compare the screen with the console.</p>
-      <p>This lesson’s <strong>Run in RAM</strong> sets the board’s clock from your computer over USB. Check that your computer’s date and time are correct. NTP is not required; HTTPS certificate verification stays enabled.</p>
-      <p>The request allows 30 seconds for DNS, connection, TLS and response reading. If the console reports a TLS handshake/request write timeout, the request did not complete; that message does not establish whether certificate validation finished.</p>
-      <h2>Make it your own</h2>
-      <p>Create weather visuals: use <code>weather_code</code> to draw a sun, clouds or rain alongside the readings. Or combine this with the <a href="#stocks">stock watchlist</a> in one project, switching between cached screens with the wheel. Keep network requests bounded and leave stable viewing time after each completed refresh.</p>
+      <h2>Run the weather display</h2>
+      <ol class="task-steps">
+        <li><strong>Register the board.</strong> Use its <a href="#mac">station MAC</a> for the approved workshop Wi-Fi.</li>
+        <li><strong>Check the network.</strong> The sample uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the open network. For another approved network, edit those two variables.</li>
+        <li><strong>Choose Run in RAM.</strong> Run once, wait for the refresh, then compare the physical screen with the console.</li>
+      </ol>
+      <div class="expected-result">Sabre Springs temperature, humidity and wind on your desk. Check the physical display; console output alone is not proof.</div>
+      <div class="lesson-callout"><strong>Check your computer’s clock.</strong> Run in RAM sets the board’s UTC over USB. NTP is not required; HTTPS certificate verification stays enabled.</div>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Clock synchronization uses USB here. After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p></details>`,
+      <p class="lesson-tip"><strong>Make it your own:</strong> draw weather visuals from <code>weather_code</code>, or combine this with the <a href="#stocks">stock watchlist</a> and use the wheel to select cached screens. Keep requests bounded and leave stable viewing time after each completed refresh.</p>
+      <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p><p>The request allows 30 seconds for DNS, connection, TLS and response reading. A TLS handshake/request write timeout means the request did not complete; it does not establish whether certificate validation finished.</p><p>After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately.</p></details>`,
   },
   {
-    id: "stocks", title: "Put ARM’s stock price on your desk", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
+    id: "stocks", title: "Your stock watchlist", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
     summary: "ARM, QCOM and GOOG · wheel selection · Menu refresh · 15-minute checks.",
     content: `
-      <p class="lesson-note">Starter project · outside the two-hour course.</p>
-      <div class="lesson-flow"><span>📶 Join Wi-Fi</span><span>→</span><span>NASDAQ watchlist</span><span>→</span><span>Display USD</span></div>
-      <p>Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code> near the top before running. Use one to ten uppercase NASDAQ symbols. The wheel scrolls through cached quotes; no request is made just to select another stock.</p>
-      <p>Register your device using its <a href="#mac">station MAC</a> first. The code already uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the workshop’s open network.</p>
-      <p>For another approved network, edit those two variables. Private secrets should instead use existing device-local configuration; never include them in shared code.</p>
-      <p>The display shows ARM and the other selected <strong>NASDAQ</strong> quotes in USD from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>. The tested feed is <strong>delayed by 15 minutes</strong>, not real-time. Each quote shows its reported delay and last available one-minute bar in UTC, separately from the check time; it can be from an earlier session when the market is closed.</p>
-      <p>Use <strong>Run in RAM</strong>. The ticker checks all symbols on start and every <strong>15 minutes</strong>. Press <strong>Menu</strong> to request another check; repeated requests coalesce with a <strong>60-second cooldown</strong>. Menu restarts the automatic schedule. <strong>Back</strong> exits; the browser’s <strong>Stop</strong> interrupts the run.</p>
-      <p>The wheel selects cached quotes. Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. Failed checks retain the last quote and mark it stale.</p>
-      <p>Run in RAM seeds UTC from your computer over USB, but this ticker also requires <strong>NTP clock synchronization</strong> before the first request and resynchronizes on a fetch cycle at least six hours later. Your approved network must allow NTP and verified HTTPS. Check your computer’s date and time; never disable TLS verification to work around a clock or certificate error.</p>
-      <h2>Make it your own</h2>
-      <p>Make a stock ticker graph: keep a bounded history of fetched quotes and draw the price over time, preserving provider timestamps and the delay label. Keep the 15-minute checks and refresh spacing. Or combine the watchlist with the <a href="#weather">weather display</a> in one project, using the wheel to switch between cached screens.</p>
+      <h2>Run the watchlist</h2>
+      <ol class="task-steps">
+        <li><strong>Register the board.</strong> Use its <a href="#mac">station MAC</a>. The code uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the open network. For another approved network, edit those two variables.</li>
+        <li><strong>Pick your stocks.</strong> Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code>. Use one to ten uppercase NASDAQ symbols.</li>
+        <li><strong>Choose Run in RAM.</strong> The ticker checks every 15 minutes. Wait for a completed refresh and check the physical display.</li>
+      </ol>
+      <div class="expected-result">USD quotes from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>, <strong>delayed by 15 minutes</strong>, not real-time. Each quote shows its last available one-minute bar in UTC and reported delay, separately from the check time.</div>
+      <h2>Use the controls</h2>
+      <ul class="control-map">
+        <li><strong>Wheel</strong><span>Select cached quotes; no extra request.</span></li>
+        <li><strong>Menu</strong><span>Request a check with a 60-second cooldown.</span></li>
+        <li><strong>Back</strong><span>Exit. Browser <strong>Stop</strong> interrupts the run.</span></li>
+      </ul>
+      <div class="lesson-callout"><strong>Clock and network:</strong> this ticker requires NTP clock synchronization before its first request. Your approved network must allow NTP and verified HTTPS. Run in RAM also seeds UTC over USB; check your computer’s date and time.</div>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
+      <p class="lesson-tip"><strong>Make it your own:</strong> draw a stock ticker graph from a bounded quote history, keeping provider timestamps, delay labels, 15-minute checks and refresh spacing. Or combine it with <a href="#weather">weather</a> and select cached screens with the wheel.</p>
+      <details><summary>Timing and display behavior</summary><p>The ticker checks all symbols on start. Repeated Menu requests coalesce and restart the automatic schedule. Failed checks retain the last quote and mark it stale; quotes may be from an earlier session when the market is closed.</p><p>Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. A successful request does not verify the physical display.</p><p>The ticker resynchronizes NTP on a fetch cycle at least six hours later. Never disable TLS verification to work around a clock or certificate error.</p></details>
       <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and NTP access. Clock synchronization failure prevents fetching; the script retries after 15 minutes, or on a Menu request once the cooldown ends. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>Each HTTPS request has a 30-second timeout; DNS uses the firmware resolver. A certificate error must not be bypassed. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. Read the console and try again later; never substitute an invented price. Quotes can remain unchanged outside market hours.</p></details>
       <details><summary>Run at startup instead?</summary><p>The editor sample runs in RAM and does not install itself. To start on power-up, back up your existing main.py and explicitly choose <strong>Save as main.py</strong>; this replaces your previous startup application. The ticker sets UTC using NTP after boot. Keep a local source backup before switching projects.</p></details>`,
   },
