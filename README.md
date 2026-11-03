@@ -363,9 +363,16 @@ use the editor's explicitly confirmed **Write selected file to device** action.
 - `device/weather.py`: shared bounded Wi-Fi and certificate-verified `fetch_json`
   operations, plus standalone weather and optional NTP helpers; fails closed on
   TLS errors, unsupported TLS configuration, stale clock, or malformed responses.
-- `device/weather_ca.pem`: ISRG Root X2 trust anchor. The Open-Meteo chain was
-  verified against this root on October 27, 2026. Renew the trust material if the
-  provider changes chains; never work around it by disabling verification.
+- `device/weather_ca.pem`: ISRG Root X1 and X2 trust anchors from
+  https://letsencrypt.org/certs/isrgrootx1.pem and
+  https://letsencrypt.org/certs/isrg-root-x2.pem. On November 3, 2026, the two
+  resolved Open-Meteo IPv4 servers served different chains, requiring X1 and X2
+  respectively; both verified on the host with this bundle. Board HTTPS with the
+  updated bundle remains unverified. Existing boards need the updated file via
+  **Write selected file to device**, or **Board check → Advanced install** (which
+  replaces customized workshop files). A missing file causes `ENOENT` before
+  any server certificate verification. Renew trust material if the provider
+  changes chains; never disable verification.
 - `device/stocks.py`: one verified HTTPS request for the last available
   NASDAQ:ARM one-minute quote from TradingView, with strict quote validation.
 - `device/stocks_ca.pem`: Amazon Root CA 1 from
