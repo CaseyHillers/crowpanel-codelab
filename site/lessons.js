@@ -122,8 +122,19 @@ export const lessons = [
       </ul>
       <p><a href="#project">Continue in Your project</a> to save your own Python files in this browser.</p>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>
+      <h2>Run in RAM or start on power-up?</h2>
+      <p><strong>Run in RAM</strong> is for trying your project. It runs the editor code in temporary memory without saving it as the startup program. When you unplug the ESP32 and it loses power, the running program and RAM-only variables disappear. An e-paper image may stay visible, but that does not mean the code is still running. Unplugging USB does not stop a board that has another power source.</p>
+      <p><strong>Startup mode</strong> stores your Python code in <code>main.py</code> on the board’s flash filesystem so it survives power cycles and runs again at normal startup. It restarts the program; it does not resume where it stopped. Counters, settings and history need their own explicit save/load logic if you want those values to survive too.</p>
+      <ol class="task-steps">
+        <li>Download your project and back up any existing <code>main.py</code> before replacing it.</li>
+        <li>Ask <strong>Codex</strong> to adapt your working RAM project for standalone startup. Include initialization, required libraries, clock setup if needed, recoverable errors, and save/load behavior for any data you want to keep. Do not include credentials in the prompt.</li>
+        <li>Review the result and try it with <strong>Run in RAM</strong> first. Open <a href="#project">Your project</a>, put the reviewed Python in the editor, expand <strong>Run automatically on boot</strong>, then choose <strong>Save as main.py…</strong> and confirm the overwrite only when ready.</li>
+        <li>After the save completes, intentionally power-cycle the board and check the physical display and controls. A successful save alone does not verify startup behavior.</li>
+      </ol>
+      <p class="lesson-note">Saving in the browser or downloading a .py file does not install it on the board. Save as main.py only when ready: it overwrites the previous startup application and runs on every normal power-up or reset. Keep USB access to interrupt with Ctrl-C.</p>
+      <p><a href="https://docs.micropython.org/en/latest/reference/reset_boot.html" target="_blank" rel="noopener noreferrer">MicroPython startup reference (opens in a new tab)</a> · <a href="./appendix/flash-backup.html">Full flash backup and restore guide</a></p>
       <details open><summary>Before you unplug</summary><p>Download your work. Remove private Wi-Fi credentials from drafts, downloads and any device files (including wifi_config.py or main.py if used). Choose Stop, then Disconnect. Drafts disappear when this tab closes.</p></details>
-      <details><summary>Want it to start on power-up?</summary><p>Save as main.py only when ready: it overwrites the boot program and runs on every reset. Keep USB access to interrupt with Ctrl-C. Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p></details>
+      <p>Deleting credentials is not a forensic secure erase; follow your organization’s device-handling policy.</p>
       <details><summary>Optional: put the factory demo back</summary>
         <p>Finished experimenting? You can reinstall Elecrow’s published factory demo without an original backup. <strong>This replaces MicroPython and erases workshop files and saved credentials.</strong> Download any work you want to keep first.</p>
         <ol>
