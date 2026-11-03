@@ -80,7 +80,7 @@ export const lessons = [
     summary: "Run → copy the station MAC → register your device.",
     content: `
       <div class="lesson-flow" aria-label="Network registration steps"><span>▶ Run</span><span>→</span><span>Copy MAC</span><span>→</span><span>Register device</span></div>
-      <p>Run the code and copy the station MAC from the console. Open <a href="http://go/wifi-setup" target="_blank" rel="noreferrer">go/wifi-setup (opens in a new tab)</a> and add that MAC address to register your board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
+      <p>Run the code and copy the station MAC from the console. Open <a href="https://guest.arm.com/guest/mac_list.php" target="_blank" rel="noreferrer">Register your device MAC address (opens in a new tab)</a> and add that MAC address to register your board for <strong>Guest-AccessNG</strong>. No password is needed for the workshop’s open network.</p>
       <p class="lesson-note">Wi-Fi registration is not needed for the Bluetooth message project.</p>
       <p class="lesson-note">This reads the station MAC without joining Wi-Fi. Registration isn’t a connection test; the network must support 2.4 GHz open access, without 802.1X or a captive portal.</p>`,
   },
