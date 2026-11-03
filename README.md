@@ -492,6 +492,10 @@ The `#weather` and `#stocks` links open their separate, untimed starter projects
 The `04_weather.py` example remains outside the timed course; its data is
 for Sabre Springs, San Diego (32.9528, -117.094), with Fahrenheit, mph and Los
 Angeles local time.
+`fetch_weather()` and the example allow a 30-second total HTTPS budget, matching
+the stock ticker. A TLS handshake/request write timeout means the shared budget
+expired, not that certificate validation completed. DNS retains the firmware
+resolver timeout. This longer weather budget has not been verified on a board.
 
 ## Hardware contract
 
