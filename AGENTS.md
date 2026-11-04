@@ -145,7 +145,9 @@
   never rename a root or bypass hostname checks. Weather sample disables Wi-Fi
   in finally before creating the panel; failed fetches must not draw. A verified
   Open-Meteo fetch succeeded on the ESP32-S3/MicroPython 1.29.0 on November 4,
-  2026; this is not evidence of physical display output or all-network reliability.
+  2026, followed by a completed sample refresh and Casey’s confirmation of the
+  physical weather image on that board. This does not establish all-network
+  reliability or validate other board revisions.
 - `device/desk_message.py` and `device/examples/04_desk_message.py`: bounded
   five-minute BLE receiver, independent of USB serial. USB powers the board and
   starts the receiver; message sending needs no Wi-Fi/NTP. Browser Web Bluetooth

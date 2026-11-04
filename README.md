@@ -524,7 +524,8 @@ The sample disables Wi-Fi before creating the panel and refreshing. Failed
 fetches also disable Wi-Fi and do not draw. The complete updated example was
 then run in RAM on the same board with a correct USB-seeded UTC clock: serial
 reported real current conditions, Wi-Fi off, and a completed display-driver
-refresh. The physical image still requires learner confirmation.
+refresh. Casey then confirmed that the physical weather image looked correct
+on that board.
 
 The trust anchors’ CNs (ISRG Root X1/X2) are not supposed to match the API
 hostname. TLS verifies `api.open-meteo.com` against the server leaf certificate,
