@@ -139,6 +139,12 @@ need low-current support. Never connect an unprotected bare cell or promise
 runtime without measuring whole-board consumption. Deep sleep restarts code,
 clears RAM history and stops the Bluetooth receiver while asleep.
 
+Finish also links to [Arm Byte Sized Build Day](https://github.com/nchatlani1/arm-byte-sized-build-day)
+for a PlatformIO/VS Code C++ path, starting with its `starter/` Morning Briefing.
+Learners download their Python work, disconnect browser USB and confirm board
+compatibility before following that repository’s upload instructions. C++ firmware
+replaces MicroPython; the e-paper refresh limits still apply.
+
 Code lessons dedicate most desktop width to a locally bundled CodeMirror Python
 editor, with syntax highlighting, line numbers, four-space indentation and
 undo/redo. Tab moves focus; Ctrl/⌘ + Enter runs. A textarea remains the fallback

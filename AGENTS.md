@@ -224,6 +224,10 @@
 - Preserve offline hello, slideshow, and station MAC functionality.
 - Finish includes future projects, official Elecrow wiki/schematic links,
   MicroPython ESP32 deep-sleep/I²C references and USB battery-pack low-current checks.
+  Link Arm Byte Sized Build Day for optional PlatformIO/C++ projects; direct
+  learners to its starter/ instructions, preserve Python work and disconnect
+  browser USB before upload. Explain firmware replacement, board compatibility
+  and unchanged e-paper refresh limits; never upload automatically.
   Explain BAT-pack compatibility checks; deep sleep restarts code, loses RAM
   history and stops BLE while asleep. Do not promise battery runtime.
   Internal batteries need exact-board voltage, connector polarity, charging and
