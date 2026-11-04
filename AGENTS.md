@@ -51,10 +51,16 @@
   The first coding lesson is 30-minute automatic Snake, then station MAC,
   slideshow, 20-minute Bluetooth desk message and Finish; no Hello or duplicate
   inputs course route. Keep station MAC; its Wi-Fi registration is optional for
-  Bluetooth. Weather and Stocks are separate archived routes at the bottom,
+  Bluetooth. Weather and Stocks are separate starter project routes at the bottom,
   excluded from timed navigation and the course duration; #weather opens Weather.
+  Offer extension ideas for a stock-price graph, weather visuals and a combined
+  project without claiming those ideas are implemented starter features.
   Keep the total at 120 minutes. Code lessons prioritize the editor; guide
   lessons hide it. No general completion tracking or automatic hardware PASS.
+  Use compact numbered steps, teal Run in RAM/actions, amber cautions and a dark
+  serial console; keep operational details expandable and core warnings visible.
+  Keep the repository source link at the bottom of navigation. Visual changes
+  preserve editor focus, drafts, storage rules and explicit device actions.
   Board check requires five observed complete cycles, a successful display
   marker and explicit user confirmation of the physical party screen before
   browser confetti. Keep browser emoji indicators as observations, not proof.
@@ -156,16 +162,18 @@
   never disable TLS. Host HTTPS was validated; board stock/Wi-Fi output was not.
   Existing learners install the latest files via Board check → Advanced install,
   not reflash. Seven files: crowpanel.py/weather.py/slides.py/weather_ca.pem/stocks.py/stocks_ca.pem/desk_message.py.
-  Archived Weather and Stocks Run in RAM seed machine.RTC from computer UTC over USB before
-  running editor code. The sample does not call NTP; sync_time remains optional
-  for standalone use where allowed. Preserve TLS/stale-clock validation, UTC
+  Weather and Stocks starter Run in RAM seed machine.RTC from computer UTC over USB before
+  running editor code. The Weather and reference one-shot Stocks samples do not
+  call NTP; the Stocks watchlist editor requires it as described below.
+  sync_time remains optional for standalone Weather/reference one-shot use where
+  allowed. Preserve TLS/stale-clock validation, UTC
   conversion, editable drafts and no clock writes to device files. Standalone
   downloads/main.py need RTC setup separately after loss of power.
 - `device/examples/04_stocks.py`: editable inline `WIFI_SSID = "Guest-AccessNG"`
   and `WIFI_PASSWORD = ""` defaults for open workshop Wi-Fi; no wifi_config.py
   dependency. There is no separate app Wi-Fi form. Private replacements are
   visible in the editor and downloads; never browser storage or logs.
-- The archived Stocks editor imports `device/projects/stock-ticker/ram/04_stocks.py`
+- The Stocks starter editor imports `device/projects/stock-ticker/ram/04_stocks.py`
   rather than the retained one-shot example. Defaults ARM/QCOM/GOOG; wheel selects
   cached quotes, Menu queues refreshes with a 60-second cooldown, automatic checks
   run every 15 minutes. NTP is required despite the browser's initial UTC seed.

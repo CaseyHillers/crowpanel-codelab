@@ -1,0 +1,2 @@
+# The demo regression test compares generated and checked-out bytes.
+device/slides.py text eol=lf

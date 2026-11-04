@@ -210,12 +210,13 @@ def _close(stream):
             pass
 
 
-def fetch_weather(timeout=10):
+def fetch_weather(timeout=30):
     """Return Open-Meteo's current dict for Sabre Springs in Fahrenheit/mph.
 
     Requires a 2026-or-newer clock and weather_ca.pem in the working directory.
     TLS requires mbedTLS CERT_REQUIRED/server_hostname checks and a PEM cafile.
     HTTP headers and body together are limited to 16 KiB; chunking is rejected.
+    DNS, TCP, TLS and response reads share the default 30-second budget.
     DNS is subject to the port's resolver timeout, not the socket deadline.
     """
     return _fetch_json(_HOST, _PATH, "weather_ca.pem", timeout, True)
