@@ -119,7 +119,7 @@ export const lessons = [
       <h2>Build on a starter project</h2>
       <p>Start with the working <a href="#stocks">stock watchlist</a> or <a href="#weather">weather display</a>, then make it your own. Both are available under Starter projects, outside the two-hour course.</p>
       <ul>
-        <li><strong>Make a stock ticker graph.</strong> Keep a bounded history of fetched quotes and plot the price over time. Label the provider timestamps and delayed data.</li>
+        <li><strong>Customize the stock graph.</strong> Start with the RAM history chart, then add your own high/low labels or layout. Keep provider timestamps and delayed-data labels.</li>
         <li><strong>Create weather visuals.</strong> Draw a sun, clouds or rain from the weather code, with temperature and humidity alongside.</li>
         <li><strong>Combine them into one project.</strong> Use the wheel to switch between weather and cached stock quotes, or draw both on one screen.</li>
       </ul>
@@ -176,13 +176,13 @@ export const lessons = [
   },
   {
     id: "stocks", title: "Your stock watchlist", navTitle: "ARM stock price", minutes: 20, archived: true, sample: "stocks", layout: "code",
-    summary: "ARM, QCOM and GOOG · wheel selection · Menu refresh · 15-minute checks.",
+    summary: "A growing price graph · ARM, QCOM and GOOG · 15-minute checks.",
     content: `
       <h2>Run the watchlist</h2>
       <ol class="task-steps">
         <li><strong>Register the board.</strong> Use its <a href="#mac">station MAC</a>. The code uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the open network. For another approved network, edit those two variables.</li>
         <li><strong>Pick your stocks.</strong> Edit <code>WATCHLIST = ["ARM", "QCOM", "GOOG"]</code>. Use one to ten uppercase NASDAQ symbols.</li>
-        <li><strong>Choose Run in RAM.</strong> The ticker checks every 15 minutes. Wait for a completed refresh and check the physical display.</li>
+        <li><strong>Choose Run in RAM.</strong> See the price first; the graph grows as new quotes arrive every 15 minutes. Wait for a completed refresh and check the physical display.</li>
       </ol>
       <div class="expected-result">USD quotes from <a href="https://www.tradingview.com/symbols/NASDAQ-ARM/" target="_blank" rel="noreferrer">TradingView (opens in a new tab)</a>, <strong>delayed by 15 minutes</strong>, not real-time. Each quote shows its last available one-minute bar in UTC and reported delay, separately from the check time.</div>
       <h2>Use the controls</h2>
@@ -194,7 +194,7 @@ export const lessons = [
       <div class="lesson-callout"><strong>Clock and network:</strong> this ticker requires NTP clock synchronization before its first request. Your approved network must allow NTP and verified HTTPS. Run in RAM also seeds UTC over USB; check your computer’s date and time.</div>
       <p class="lesson-note">Already installed workshop files earlier? Use <a href="#verify">Board check</a> → Advanced install to install the latest stock libraries and certificate; no firmware reflash.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <p class="lesson-tip"><strong>Make it your own:</strong> draw a stock ticker graph from a bounded quote history, keeping provider timestamps, delay labels, 15-minute checks and refresh spacing. Or combine it with <a href="#weather">weather</a> and select cached screens with the wheel.</p>
+      <p class="lesson-tip"><strong>Your graph builds over time.</strong> Each stock keeps up to 32 distinct provider timestamps in RAM. One quote shows a waiting state; repeated timestamps add no extra points. Restarting clears the graph. Customize the chart or combine it with <a href="#weather">weather</a> and select cached screens with the wheel.</p>
       <details><summary>Timing and display behavior</summary><p>The ticker checks all symbols on start. Repeated Menu requests coalesce and restart the automatic schedule. Failed checks retain the last quote and mark it stale; quotes may be from an earlier session when the market is closed.</p><p>Display changes coalesce and wait at least ten seconds after the previous completed refresh. Wi-Fi is turned off before drawing, and each refresh uses a fresh panel object. Brief button presses during blocking network calls may be missed. A successful request does not verify the physical display.</p><p>The ticker resynchronizes NTP on a fetch cycle at least six hours later. Never disable TLS verification to work around a clock or certificate error.</p></details>
       <details><summary>No quote?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and NTP access. Clock synchronization failure prevents fetching; the script retries after 15 minutes, or on a Menu request once the cooldown ends. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep stocks_ca.pem installed and HTTPS verification enabled.</p><p>Each HTTPS request has a 30-second timeout; DNS uses the firmware resolver. A certificate error must not be bypassed. TradingView’s public website endpoint needs no API key, but it may rate-limit or change. Read the console and try again later; never substitute an invented price. Quotes can remain unchanged outside market hours.</p></details>
       <details><summary>Run at startup instead?</summary><p>The editor sample runs in RAM and does not install itself. To start on power-up, back up your existing main.py and explicitly choose <strong>Save as main.py</strong>; this replaces your previous startup application. The ticker sets UTC using NTP after boot. Keep a local source backup before switching projects.</p></details>`,

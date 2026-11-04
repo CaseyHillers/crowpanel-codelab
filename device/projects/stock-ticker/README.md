@@ -37,7 +37,9 @@ Public workshop Wi-Fi defaults are `Guest-AccessNG` with an empty password. Obta
 ## Behavior
 
 - Fetch all symbols on start and every 15 minutes from the previous request-cycle start.
-- Up/down wheel inputs select cached quotes, wrapping around the watchlist.
+- Up/down wheel inputs select cached quotes and their graphs, wrapping around the watchlist.
+- Each symbol keeps up to 32 quotes in RAM. The chart starts with one point and waits for another distinct provider timestamp. Repeated timestamps replace the latest point; older timestamps fail safely and retain the last good quote. Restarting clears all history.
+- Chart spacing follows elapsed provider time, with an automatically scaled price range. A flat line means unchanged sampled prices. The percentage compares the latest price with the first retained sample; it is not daily change. These are collected samples, not full market history.
 - Menu requests all symbols again; requests coalesce with a 60-second cooldown between cycle starts. Menu restarts the automatic schedule.
 - Back exits; the workshop Stop button/Ctrl-C interrupts execution.
 - Independently debounce active-low inputs for 30 ms; held inputs need release before another press. Rollover-safe ticks and 5 ms polling.
@@ -61,7 +63,7 @@ python tests/check_watchlist.py ram/04_stocks.py
 python tests/check_watchlist.py startup/main.py
 ```
 
-These simulate the scheduler, debounce, navigation, request coalescing, outage retention and display constraints. See VALIDATION.md for physical observations and remaining acceptance checks. Neither test writes to a board.
+These simulate the scheduler, debounce, navigation, request coalescing, history collection, outage retention and display constraints. The repository graph tests also check bounded history, timestamp spacing and renderer bounds. See VALIDATION.md for physical observations and remaining acceptance checks. Neither test writes to a board.
 
 ## Integration suggestions
 

@@ -73,7 +73,7 @@ this repository. The initial lockfile was downloaded using registry.npmmirror.co
 | Finish | 10 | Explore future projects, download work, remove private credentials and disconnect |
 
 Weather and Stocks are starter projects at the bottom of the sidebar, outside
-the two-hour course. Extend them with a stock-price graph, weather illustrations,
+the two-hour course. Customize the stock-price graph, add weather illustrations,
 or a combined weather-and-stocks desk display. Station MAC stays in the course;
 Wi-Fi registration is optional for the Bluetooth project.
 
@@ -457,7 +457,11 @@ are rejected rather than accepted unsafely.
 The Stocks starter uses `device/projects/stock-ticker/ram/04_stocks.py`.
 Edit its `WATCHLIST` (ARM, QCOM and GOOG by default); the wheel selects cached
 quotes, Menu queues a check with a 60-second cooldown, and all symbols are
-checked every 15 minutes. Back exits. NTP and verified HTTPS are required.
+checked every 15 minutes. Each symbol collects up to 32 quotes in RAM for its
+price graph; duplicate timestamps replace the latest point. The chart waits for
+a second distinct provider timestamp, and restarting clears history. It shows
+collected samples, not full market history. Back exits. NTP and verified HTTPS
+are required.
 Display refreshes use fresh panel objects, Wi-Fi off and ten seconds of stable
 viewing after the previous completed refresh. See the package README for
 startup instructions and limitations. The original one-shot example remains

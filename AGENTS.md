@@ -53,7 +53,7 @@
   inputs course route. Keep station MAC; its Wi-Fi registration is optional for
   Bluetooth. Weather and Stocks are separate starter project routes at the bottom,
   excluded from timed navigation and the course duration; #weather opens Weather.
-  Offer extension ideas for a stock-price graph, weather visuals and a combined
+  Offer extension ideas for customizing the stock graph, weather visuals and a combined
   project without claiming those ideas are implemented starter features.
   Keep the total at 120 minutes. Code lessons prioritize the editor; guide
   lessons hide it. No general completion tracking or automatic hardware PASS.
@@ -176,7 +176,12 @@
 - The Stocks starter editor imports `device/projects/stock-ticker/ram/04_stocks.py`
   rather than the retained one-shot example. Defaults ARM/QCOM/GOOG; wheel selects
   cached quotes, Menu queues refreshes with a 60-second cooldown, automatic checks
-  run every 15 minutes. NTP is required despite the browser's initial UTC seed.
+  run every 15 minutes. Each symbol keeps at most 32 provider-timestamp/price
+  samples in RAM; repeated timestamps replace the last point, older timestamps
+  fail without replacing cached data. Chart x spacing uses elapsed provider time.
+  Show honest missing/single/flat states; restarting clears history. Never invent
+  historical prices or label sampled change as daily change. NTP is required
+  despite the browser's initial UTC seed.
   Preserve HTTPS, stale markers, fresh panel objects, Wi-Fi off while drawing and
   ten seconds after completed refreshes. Startup saving remains explicitly opt-in.
 - `device/examples/`: learner-editable Python scripts, run in RAM by default.
