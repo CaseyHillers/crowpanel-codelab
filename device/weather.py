@@ -43,7 +43,7 @@ def _pause(started, timeout_ms, phase="operation"):
 
 def _require_clock():
     if time.gmtime()[0] < 2026:
-        raise OSError("clock is before 2026; run from the browser Stocks lesson to set UTC, or set machine.RTC before HTTPS")
+        raise OSError("clock is before 2026; run from the browser Weather or Stocks lesson to set UTC, or set machine.RTC before HTTPS")
 
 
 def connect(ssid, password, timeout=15):
@@ -243,7 +243,13 @@ def _fetch_json(host, path, cafile, timeout, current_conditions):
     _require_clock()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations(cafile=cafile)
+    try:
+        context.load_verify_locations(cafile=cafile)
+    except OSError as error:
+        if error.args and error.args[0] == errno.ENOENT:
+            raise OSError(errno.ENOENT, "Missing CA file " + cafile
+                          + "; reinstall workshop files via Board check -> Advanced install")
+        raise
     addresses = socket.getaddrinfo(host, 443, socket.AF_INET, socket.SOCK_STREAM)
     _remaining(started, timeout_ms, "DNS resolution")
     if not addresses:

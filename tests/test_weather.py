@@ -162,8 +162,11 @@ class WeatherTests(unittest.TestCase):
 
     def test_fetch_requires_current_clock_before_tls_or_dns(self):
         self.clock.year = 2025
-        with self.assertRaises(OSError):
+        with self.assertRaises(OSError) as raised:
             self.weather.fetch_weather()
+        message = str(raised.exception)
+        for required in ("Weather", "Stocks", "browser", "machine.RTC"):
+            self.assertIn(required, message)
         self.ssl.SSLContext.assert_not_called()
         self.socket.getaddrinfo.assert_not_called()
 
@@ -333,6 +336,43 @@ class WeatherTests(unittest.TestCase):
         self.context.wrap_socket.assert_called_once()
         self.assert_closed()
 
+    def test_missing_ca_names_the_device_file_and_install_action_before_network(self):
+        for cafile, fetch in [
+            ("weather_ca.pem", lambda: self.weather.fetch_weather()),
+            ("stocks_ca.pem", lambda: self.weather.fetch_json(
+                "scanner.tradingview.com", "/symbol", "stocks_ca.pem")),
+        ]:
+            with self.subTest(cafile=cafile):
+                self.context.load_verify_locations.reset_mock()
+                self.context.load_verify_locations.side_effect = OSError(errno.ENOENT)
+                with self.assertRaises(OSError) as raised:
+                    fetch()
+                self.assertEqual(raised.exception.args[0], errno.ENOENT)
+                message = str(raised.exception)
+                self.assertIn(cafile, message)
+                self.assertIn("Board check", message)
+                self.assertIn("Advanced install", message)
+                self.context.load_verify_locations.assert_called_once_with(cafile=cafile)
+                self.assertEqual(self.context.verify_mode, self.ssl.CERT_REQUIRED)
+                self.socket.getaddrinfo.assert_not_called()
+                self.socket.socket.assert_not_called()
+                self.context.wrap_socket.assert_not_called()
+
+    def test_other_ca_load_failures_keep_the_original_error_without_fallback(self):
+        for error in (OSError(errno.EACCES), OSError("bad CA encoding"),
+                      ValueError("invalid PEM certificate")):
+            with self.subTest(error=repr(error)):
+                self.context.load_verify_locations.reset_mock()
+                self.context.load_verify_locations.side_effect = error
+                with self.assertRaises(type(error)) as raised:
+                    self.weather.fetch_weather()
+                self.assertIs(raised.exception, error)
+                self.context.load_verify_locations.assert_called_once_with(cafile="weather_ca.pem")
+                self.assertEqual(self.context.verify_mode, self.ssl.CERT_REQUIRED)
+                self.socket.getaddrinfo.assert_not_called()
+                self.socket.socket.assert_not_called()
+                self.context.wrap_socket.assert_not_called()
+
     def test_ca_failure_does_not_open_socket(self):
         self.context.load_verify_locations.side_effect = OSError("missing CA")
         with self.assertRaisesRegex(OSError, "missing CA"):
@@ -462,14 +502,16 @@ class WeatherExampleTests(unittest.TestCase):
             "crowpanel": types.SimpleNamespace(CrowPanel=self.operations.CrowPanel),
             "wifi_config": None,
         }), patch("builtins.print") as output:
+            self.output = output
             runpy.run_path(str(ROOT / "device/examples/04_weather.py"))
         return output
 
     def test_open_workshop_default_fetches_without_ntp_or_wifi_config(self):
         output = self.run_sample()
-        self.assertEqual(self.operations.mock_calls[:3], [
+        self.assertEqual(self.operations.mock_calls[:4], [
             call.connect("Guest-AccessNG", "", timeout=15),
             call.fetch_weather(timeout=30),
+            call.connect().active(False),
             call.CrowPanel(controller="jd79661"),
         ])
         self.operations.sync_time.assert_not_called()
@@ -496,7 +538,22 @@ class WeatherExampleTests(unittest.TestCase):
         with self.assertRaisesRegex(OSError, "clock is before 2026"):
             self.run_sample()
         self.operations.sync_time.assert_not_called()
+        self.operations.connect.return_value.active.assert_called_once_with(False)
         self.operations.CrowPanel.assert_not_called()
+
+    def test_tls_or_hostname_failure_turns_wifi_off_without_drawing_or_success(self):
+        for error in (OSError("TLS handshake timed out"),
+                      ValueError("certificate CN does not match expected CN")):
+            with self.subTest(error=repr(error)):
+                self.operations.reset_mock()
+                self.operations.fetch_weather.side_effect = error
+                with self.assertRaises(type(error)) as raised:
+                    self.run_sample()
+                self.assertIs(raised.exception, error)
+                self.operations.connect.return_value.active.assert_called_once_with(False)
+                self.operations.CrowPanel.assert_not_called()
+                self.operations.sync_time.assert_not_called()
+                self.assertNotIn("refresh sequence completed", str(self.output.call_args_list))
 
 
 if __name__ == "__main__":
