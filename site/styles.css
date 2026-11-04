@@ -178,6 +178,11 @@ p { margin: 0 0 14px; }
 .usb-check h2 { margin-top: 0; }
 #usb-check-status[data-state="detected"] { color: var(--positive); font-weight: 600; }
 #usb-check-status[data-state="error"] { color: var(--negative); }
+.board-overview { margin-bottom: 32px; }
+.board-overview figure { margin: 16px 0; max-width: 600px; }
+.board-overview img { display: block; width: 100%; height: auto; }
+.board-overview figcaption { margin-top: 8px; font-size: 12px; color: var(--muted); }
+#lesson-content .board-key { margin-bottom: 24px; }
 .macos-screenshots { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin-block: 20px; max-width: 470px; }
 .macos-screenshots figure { margin: 0; }
 .macos-screenshots img { display: block; width: 100%; height: auto; border-radius: 6px; }
