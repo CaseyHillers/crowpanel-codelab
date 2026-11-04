@@ -57,6 +57,118 @@ def fetch_symbol(symbol):
             "source": "TradingView"}
 
 
+HISTORY_LIMIT = 32
+
+
+def remember_quote(history, quote):
+    """Retain distinct provider minutes, never retrieval times or invented points."""
+    point = (quote["quote_time"], quote["price"])
+    if history and point[0] < history[-1][0]:
+        raise ValueError("Quote time moved backwards")
+    if history and point[0] == history[-1][0]:
+        history[-1] = point
+    else:
+        history.append(point)
+        if len(history) > HISTORY_LIMIT:
+            del history[:-HISTORY_LIMIT]
+
+
+def chart_points(history, x, y, width, height):
+    """Scale real elapsed provider time and the retained price range."""
+    if not history:
+        return []
+    first, last = history[0][0], history[-1][0]
+    low = min(point[1] for point in history)
+    high = max(point[1] for point in history)
+    return [(x + (int((stamp - first) / (last - first) * (width - 1))
+                   if last != first else (width - 1) // 2),
+             y + (int((high - price) / (high - low) * (height - 1))
+                   if high != low else (height - 1) // 2))
+            for stamp, price in history]
+
+
+def draw_line(panel, start, end):
+    """Integer line drawing using only the public pixel API."""
+    x, y = start
+    end_x, end_y = end
+    dx, dy = abs(end_x - x), -abs(end_y - y)
+    step_x = 1 if x < end_x else -1
+    step_y = 1 if y < end_y else -1
+    error = dx + dy
+    while True:
+        panel.pixel(x, y, 0)
+        if x == end_x and y == end_y:
+            return
+        twice = 2 * error
+        if twice >= dy:
+            error += dy
+            x += step_x
+        if twice <= dx:
+            error += dx
+            y += step_y
+
+
+def price_label(price):
+    label = "%.2f" % price
+    return label if len(label) <= 12 else "%.4g" % price
+
+
+def render_quote(panel, symbol, position, total, entry, checked, failed, pending, history):
+    """Compose one frame; the run loop alone owns the physical refresh."""
+    panel.fill(WHITE)
+    panel.rect(0, 0, 250, 12, 0, fill=True)
+    panel.text("%s NASDAQ %d/%d" % (symbol, position, total), 4, 2, WHITE)
+    if entry:
+        quote, minute = entry
+        price = "$" + price_label(quote["price"]) + " USD"
+        # A second one-pixel impression gives the price visual weight.
+        panel.text(price, 4, 17)
+        panel.text(price, 5, 17)
+        if len(history) > 1:
+            change = (history[-1][1] / history[0][1] - 1) * 100
+            label = "%+.1f%% RAM" % change
+            if math.isfinite(change) and len(price) * 8 + 8 + len(label) * 8 <= 242:
+                panel.text(label, 246 - len(label) * 8, 17)
+        points = chart_points(history, 5, 33, 178, 35)
+        if points:
+            # The border and range labels make auto-scaling explicit.
+            panel.rect(3, 31, 182, 39)
+            for start, end in zip(points, points[1:]):
+                draw_line(panel, start, end)
+            end_x, end_y = points[-1]
+            panel.rect(end_x - 1, end_y - 1, 3, 3, 0, fill=True)
+            high = max(point[1] for point in history)
+            low = min(point[1] for point in history)
+            for value, y in ((high, 33), (low, 60)):
+                label = price_label(value)
+                if len(label) > 7:
+                    label = "%.0e" % value
+                panel.text(label, 190, y)
+        if len(history) < 2:
+            caption = "Waiting for more quotes"
+        elif high == low:
+            caption = "%d quotes in RAM | flat" % len(history)
+        else:
+            caption = "%d quotes in RAM | auto scale" % len(history)
+        panel.text(caption, 4, 72)
+        delay = "Delay:%dm" % quote["delay_minutes"]
+        panel.text("TradingView | " + delay, 4, 83)
+        panel.text("Quote " + minute + " UTC", 4, 94)
+    else:
+        panel.text("Quote unavailable", 4, 22)
+        panel.text("Menu: retry after cooldown", 4, 43)
+        panel.text("History starts with a quote", 4, 61)
+        panel.text("TradingView | delay unknown", 4, 83)
+        panel.text("Quote time unavailable", 4, 94)
+    status = "Check " + (checked or "--:-- UTC")
+    if failed:
+        status += " STALE"
+    if pending:
+        status += " queued"
+    panel.text(status, 4, 104)
+    panel.text("Wheel:pick Menu:ask Back:exit", 4, 114)
+
+
 class Controls:
     """Collect edges only; also safe as a display wait callback."""
     def __init__(self, panel):
@@ -99,6 +211,7 @@ def run():
     symbols = validate_watchlist(WATCHLIST)
     controls = Controls(CrowPanel(controller="jd79661"))
     quotes, checked, failed = {}, {}, {}
+    histories = {symbol: [] for symbol in symbols}
     selected = 0
     pending = True
     last_attempt = last_sync = last_refresh = shown = None
@@ -140,6 +253,7 @@ def run():
                         quote = fetch_symbol(symbol)
                         minute = format_quote_time(quote)
                         utc = time.gmtime()
+                        remember_quote(histories[symbol], quote)
                         quotes[symbol] = (quote, minute)
                         checked[symbol] = "%02d:%02d UTC" % (utc[3], utc[4])
                         failed[symbol] = False
@@ -160,32 +274,19 @@ def run():
             continue
         symbol = symbols[selected]
         entry = quotes.get(symbol)
-        status = "STALE: last check failed" if failed.get(symbol) else "Auto check: every 15m"
-        if pending:
-            status = "Refresh queued (60s limit)"
-        if entry:
-            quote, minute = entry
-            delay = ("Delay: %dm" % quote["delay_minutes"] if quote["delay_minutes"]
-                     else "Source reports no delay")
-            lines = ("%s / NASDAQ   %d/%d" % (symbol, selected + 1, len(symbols)),
-                     "$%.2f USD" % quote["price"], delay + " | TradingView",
-                     "Quote UTC: " + minute, "Checked: " + checked[symbol],
-                     status, "Wheel: select  Menu: refresh", "Back: exit")
-        else:
-            lines = ("%s / NASDAQ   %d/%d" % (symbol, selected + 1, len(symbols)),
-                     "Quote unavailable", "TradingView | delay unknown", "", "",
-                     status, "Wheel: select  Menu: refresh", "Back: exit")
+        history = histories[symbol]
+        frame = (symbol, entry, checked.get(symbol), bool(failed.get(symbol)),
+                 pending, tuple(history))
         now = time.ticks_ms()
-        if lines != shown and (last_refresh is None
+        if frame != shown and (last_refresh is None
                               or time.ticks_diff(now, last_refresh) >= MIN_REFRESH_MS):
             # New public object per refresh: tested workaround for this panel.
             panel = CrowPanel(controller="jd79661")
-            panel.fill(WHITE)
-            for y, line in zip((0, 18, 36, 50, 64, 80, 96, 112), lines):
-                panel.text(line[:30], 4, y)
+            render_quote(panel, symbol, selected + 1, len(symbols), entry,
+                         checked.get(symbol), failed.get(symbol), pending, history)
             panel.show(on_wait=controls.poll)
             last_refresh = time.ticks_ms()
-            shown = lines
+            shown = frame
             print("DISPLAY:", symbol)
         time.sleep_ms(5)
 
