@@ -64,7 +64,10 @@
   Board check requires five observed complete cycles, a successful display
   marker and explicit user confirmation of the physical party screen before
   browser confetti. Keep browser emoji indicators as observations, not proof.
-- `site/usb-setup.html`: concise OS-specific host guides and a copyable Codex
+- `site/usb-setup.html`: locally bundled labeled board overview early in Host
+  setup, with accessible control/connector explanation and full-size image link.
+  Preserve image provenance in `site/public/guides/hardware/README.md`.
+  Concise OS-specific host guides and a copyable Codex
   prompt. `docs/usb-setup.md` is bundled as a downloadable Vite asset. Keep
   driver/IT approval separate from firmware installation; do not require CLI
   tools, bypass security, or infer a bridge model from VID/PID alone.
@@ -219,7 +222,10 @@
 - Wi-Fi examples support 2.4 GHz Personal/open networks, not enterprise 802.1X.
   MAC registration does not imply corporate-network compatibility.
 - Preserve offline hello, slideshow, and station MAC functionality.
-- Finish includes future projects and USB battery-pack low-current checks.
+- Finish includes future projects, official Elecrow wiki/schematic links,
+  MicroPython ESP32 deep-sleep/I²C references and USB battery-pack low-current checks.
+  Explain BAT-pack compatibility checks; deep sleep restarts code, loses RAM
+  history and stops BLE while asleep. Do not promise battery runtime.
   Internal batteries need exact-board voltage, connector polarity, charging and
   protection verification; never recommend an unprotected bare cell.
 - Driver pins/protocol must be vendor-backed; reference links belong in README.

@@ -126,11 +126,18 @@ reload is not installation success.
 Hello and the independent input diagnostic are not timed course routes; the
 diagnostic remains available below. The course still totals 120 minutes.
 
+Host setup includes a locally bundled, labeled front/rear board photograph,
+with a full-size link and a guide to USB-C, application controls, BOOT/RESET
+and expansion connectors. See `site/public/guides/hardware/README.md` for provenance.
+
 Finish suggests notifications, a calendar viewer, a build-status display and a
-desk companion. For a cable-free display, check USB battery-pack low-current
-support. Before an internal battery, verify the exact board manual, voltage,
-connector polarity, charging support and cell protection; never connect an
-unprotected bare cell.
+desk companion, with links to Elecrow’s board wiki and schematics and the
+MicroPython ESP32 deep-sleep and I²C references. A BAT-port battery project
+requires the exact board revision’s voltage, chemistry, connector polarity,
+charging support and a protected pack to be checked first. USB battery packs
+need low-current support. Never connect an unprotected bare cell or promise
+runtime without measuring whole-board consumption. Deep sleep restarts code,
+clears RAM history and stops the Bluetooth receiver while asleep.
 
 Code lessons dedicate most desktop width to a locally bundled CodeMirror Python
 editor, with syntax highlighting, line numbers, four-space indentation and
@@ -596,6 +603,10 @@ firmware's third-party notices.
 
 ## Sources and notices
 
+- Board wiki and BAT specifications (3.7 V lithium, SH1.0 two-pin, charging circuit; verify exact revision and pack): https://www.elecrow.com/wiki/CrowPanel_ESP32_E-Paper_HMI_2.13-inch_Display.html
+- Expansion and BAT wiring: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/tree/master/Eagle_SCH%26PCB
+- Future power-saving projects: https://docs.micropython.org/en/latest/esp32/quickref.html#deep-sleep-mode
+- Future I²C sensor projects: https://docs.micropython.org/en/latest/esp32/quickref.html#i2c-bus
 - Board source/schematic: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250
 - JD79661 initialization/LUTs: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/example/arduino-v1.2/main/EPD_Init.cpp
 - JD79661 BUSY/auto-sequence commands: vendor `Datasheet/EK79029DS-JD79661_Datasheet.pdf`, sections 8.2.10 and 9.1.
