@@ -155,8 +155,8 @@
   no new installed library or private canvas access. Import must not run the
   network or display; one run still fetches once and refreshes once. All nine
   icon layouts passed on-board geometry checks; a live clear/sun sample completed
-  the driver refresh on November 4, 2026. Physical icon-layout confirmation is
-  pending; do not reuse the earlier text-only confirmation for this layout.
+  the driver refresh on November 4, 2026. Casey separately confirmed that the
+  new sun icon and large-temperature layout looked good on the physical screen.
 - `device/desk_message.py` and `device/examples/04_desk_message.py`: bounded
   five-minute BLE receiver, independent of USB serial. USB powers the board and
   starts the receiver; message sending needs no Wi-Fi/NTP. Browser Web Bluetooth

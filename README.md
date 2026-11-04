@@ -522,8 +522,9 @@ explicit unknown icon and label. The renderer uses only public drawing APIs
 and makes no display calls during import. No extra board file is required.
 On November 4, 2026, all nine icon layouts passed geometry checks on MicroPython;
 the live icon sample fetched clear conditions and 73.0°F over verified HTTPS,
-turned Wi-Fi off and completed its display-driver refresh. Physical confirmation
-of the new icon layout is pending.
+turned Wi-Fi off and completed its display-driver refresh. Casey then confirmed
+that the new sun icon and large-temperature layout looked good on the physical
+screen.
 `fetch_weather()` and the example allow a 30-second total HTTPS budget, matching
 the stock ticker. A TLS handshake/request write timeout means the shared budget
 expired, not that certificate validation completed. DNS retains the firmware
