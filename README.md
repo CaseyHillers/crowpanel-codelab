@@ -547,6 +547,10 @@ python3 -m venv .venv
 .venv/bin/python tools/convert_images.py --demo
 ```
 
+The image converter writes LF line endings on every host. `.gitattributes`
+also keeps the checked-in `device/slides.py` fixture at LF on Windows so the
+demo regeneration test compares identical bytes even with `core.autocrlf=true`.
+
 JavaScript tests exercise raw-REPL framing, cancellation, concurrency, source/file
 transfer, and disconnects using fake streams. Python tests check image conversion,
 panel geometry/protocol behavior, stock quote validation and shared HTTPS/weather
