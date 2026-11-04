@@ -386,8 +386,9 @@ use the editor's explicitly confirmed **Write selected file to device** action.
   https://letsencrypt.org/certs/isrgrootx1.pem and
   https://letsencrypt.org/certs/isrg-root-x2.pem. On November 3, 2026, the two
   resolved Open-Meteo IPv4 servers served different chains, requiring X1 and X2
-  respectively; both verified on the host with this bundle. Board HTTPS with the
-  updated bundle remains unverified. Existing boards need the updated file via
+  respectively; both verified on the host with this bundle. On November 4, 2026,
+  the ESP32-S3 running MicroPython 1.29.0 fetched real Open-Meteo current
+  conditions with this bundle and verified HTTPS in 2.39 seconds. Existing boards need the updated file via
   **Write selected file to device**, or **Board check → Advanced install** (which
   replaces customized workshop files). A missing file causes `ENOENT` before
   any server certificate verification. Renew trust material if the provider
@@ -517,7 +518,24 @@ Angeles local time.
 `fetch_weather()` and the example allow a 30-second total HTTPS budget, matching
 the stock ticker. A TLS handshake/request write timeout means the shared budget
 expired, not that certificate validation completed. DNS retains the firmware
-resolver timeout. This longer weather budget has not been verified on a board.
+resolver timeout. A November 4, 2026 on-board request completed successfully
+within this budget; this does not establish reliability on every network.
+The sample disables Wi-Fi before creating the panel and refreshing. Failed
+fetches also disable Wi-Fi and do not draw. The complete updated example was
+then run in RAM on the same board with a correct USB-seeded UTC clock: serial
+reported real current conditions, Wi-Fi off, and a completed display-driver
+refresh. The physical image still requires learner confirmation.
+
+The trust anchors’ CNs (ISRG Root X1/X2) are not supposed to match the API
+hostname. TLS verifies `api.open-meteo.com` against the server leaf certificate,
+using the same name for SNI. Both resolved Open-Meteo IPv4 hosts passed explicit
+hostname verification from the computer on November 4, 2026. A genuine
+CN/hostname mismatch on a board should be investigated through the exact error,
+installed helper, resolved server and approved network path; renaming the PEM or
+disabling verification is not a fix. Reflashing erases the workshop libraries
+and certificate files; reinstall them through Board check → Advanced install,
+then use Weather Run in RAM to seed UTC over USB. Missing CA errors name the file
+and installation step, while certificate verification failures remain errors.
 
 ## Hardware contract
 

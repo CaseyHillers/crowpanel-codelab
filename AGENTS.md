@@ -140,6 +140,12 @@
   completion; a permanently idle BUSY pin is not success.
 - `device/weather.py`: shared bounded connect/fetch_json with verified HTTPS,
   plus the standalone Sabre Springs weather API/sample and optional sync_time.
+  Missing CA diagnostics name the file and Advanced install; preserve real TLS
+  verification errors. Root CA CNs differ from the server hostname by design;
+  never rename a root or bypass hostname checks. Weather sample disables Wi-Fi
+  in finally before creating the panel; failed fetches must not draw. A verified
+  Open-Meteo fetch succeeded on the ESP32-S3/MicroPython 1.29.0 on November 4,
+  2026; this is not evidence of physical display output or all-network reliability.
 - `device/desk_message.py` and `device/examples/04_desk_message.py`: bounded
   five-minute BLE receiver, independent of USB serial. USB powers the board and
   starts the receiver; message sending needs no Wi-Fi/NTP. Browser Web Bluetooth
