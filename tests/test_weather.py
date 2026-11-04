@@ -503,7 +503,7 @@ class WeatherExampleTests(unittest.TestCase):
             "wifi_config": None,
         }), patch("builtins.print") as output:
             self.output = output
-            runpy.run_path(str(ROOT / "device/examples/04_weather.py"))
+            runpy.run_path(str(ROOT / "device/examples/04_weather.py"), run_name="__main__")
         return output
 
     def test_open_workshop_default_fetches_without_ntp_or_wifi_config(self):
