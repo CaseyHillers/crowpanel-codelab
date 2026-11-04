@@ -120,7 +120,7 @@ export const lessons = [
       <p>Start with the working <a href="#stocks">stock watchlist</a> or <a href="#weather">weather display</a>, then make it your own. Both are available under Starter projects, outside the two-hour course.</p>
       <ul>
         <li><strong>Customize the stock graph.</strong> Start with the RAM history chart, then add your own high/low labels or layout. Keep provider timestamps and delayed-data labels.</li>
-        <li><strong>Create weather visuals.</strong> Draw a sun, clouds or rain from the weather code, with temperature and humidity alongside.</li>
+        <li><strong>Customize the weather visuals.</strong> Start with the condition icons and large temperature, then add your own artwork or layout.</li>
         <li><strong>Combine them into one project.</strong> Use the wheel to switch between weather and cached stock quotes, or draw both on one screen.</li>
       </ul>
       <p>Keep requests bounded and respect provider limits. Leave stable viewing time after each completed e-paper refresh.</p>
@@ -168,7 +168,7 @@ export const lessons = [
   },
   {
     id: "weather", title: "Weather for your desk", navTitle: "Weather", minutes: 20, archived: true, sample: "weather", layout: "code",
-    summary: "Temperature, humidity and wind for Sabre Springs.",
+    summary: "A weather icon, large temperature and local conditions for Sabre Springs.",
     content: `
       <h2>Run the weather display</h2>
       <ol class="task-steps">
@@ -176,11 +176,11 @@ export const lessons = [
         <li><strong>Check the network.</strong> The sample uses <code>WIFI_SSID = "Guest-AccessNG"</code> and <code>WIFI_PASSWORD = ""</code> for the open network. For another approved network, edit those two variables.</li>
         <li><strong>Choose Run in RAM.</strong> Run once, wait for the refresh, then compare the physical screen with the console.</li>
       </ol>
-      <div class="expected-result">Sabre Springs temperature, humidity and wind on your desk. Check the physical display; console output alone is not proof.</div>
+      <div class="expected-result">A condition icon and large temperature, with feels-like temperature, humidity and wind. Open-Meteo’s weather code selects the icon; the timestamp is San Diego local time. Check the physical display.</div>
       <div class="lesson-callout"><strong>Check your computer’s clock.</strong> Run in RAM sets the board’s UTC over USB. NTP is not required; HTTPS certificate verification stays enabled.</div>
       <p class="lesson-note">Just flashed MicroPython, or missing workshop files? Use <a href="#verify">Board check</a> → Advanced install to restore the libraries and <code>weather_ca.pem</code>. This replaces customized workshop files; no further firmware flash is needed.</p>
       <p class="lesson-note">Private credentials in code are visible in the editor and included in downloads. Remove them before sharing. Never print secrets, store them in browser storage, or disable TLS verification.</p>
-      <p class="lesson-tip"><strong>Make it your own:</strong> draw weather visuals from <code>weather_code</code>, or combine this with the <a href="#stocks">stock watchlist</a> and use the wheel to select cached screens. Keep requests bounded and leave stable viewing time after each completed refresh.</p>
+      <p class="lesson-tip"><strong>Make it your own:</strong> customize the artwork in <code>draw_weather_icon()</code>, or combine this with the <a href="#stocks">stock watchlist</a> and use the wheel to select cached screens. Keep requests bounded and leave stable viewing time after each completed refresh.</p>
       <details><summary>No weather?</summary><p>Check IT registration, 2.4 GHz support, SSID, DNS and your computer’s clock. Captive portals and enterprise 802.1X are not supported; MAC registration does not add that support. Keep weather_ca.pem installed and HTTPS verification enabled.</p><p><strong>CN/hostname mismatch?</strong> The PEM’s ISRG Root X1/X2 names identify trusted certificate authorities; they do not need to match the weather hostname. The server certificate must identify <code>api.open-meteo.com</code>. A real hostname mismatch can indicate an edited hostname, captive portal or network interception. Check the installed library and approved network; never rename a certificate or disable verification.</p><p>The request allows 30 seconds for DNS, connection, TLS and response reading. A TLS handshake/request write timeout means the request did not complete; it does not establish whether certificate validation finished.</p><p>After a power cycle, use Run in RAM in this lesson again to set the clock. Downloaded scripts and main.py need an accurate UTC RTC set separately.</p></details>`,
   },
   {

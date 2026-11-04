@@ -514,14 +514,23 @@ reuse an existing association even if the edited SSID differs.
 The `#weather` and `#stocks` links open their separate, untimed starter projects.
 The `04_weather.py` example remains outside the timed course; its data is
 for Sabre Springs, San Diego (32.9528, -117.094), with Fahrenheit, mph and Los
-Angeles local time.
+Angeles local time. Its monochrome layout uses a condition icon, large bitmap
+temperature, feels-like temperature, humidity, wind, provider timestamp and
+Open-Meteo attribution. WMO weather codes select clear, partly cloudy, overcast,
+fog, drizzle, rain, snow or thunderstorm artwork; unrecognized codes show an
+explicit unknown icon and label. The renderer uses only public drawing APIs
+and makes no display calls during import. No extra board file is required.
+On November 4, 2026, all nine icon layouts passed geometry checks on MicroPython;
+the live icon sample fetched clear conditions and 73.0°F over verified HTTPS,
+turned Wi-Fi off and completed its display-driver refresh. Physical confirmation
+of the new icon layout is pending.
 `fetch_weather()` and the example allow a 30-second total HTTPS budget, matching
 the stock ticker. A TLS handshake/request write timeout means the shared budget
 expired, not that certificate validation completed. DNS retains the firmware
 resolver timeout. A November 4, 2026 on-board request completed successfully
 within this budget; this does not establish reliability on every network.
 The sample disables Wi-Fi before creating the panel and refreshing. Failed
-fetches also disable Wi-Fi and do not draw. The complete updated example was
+fetches also disable Wi-Fi and do not draw. The earlier text-only example was
 then run in RAM on the same board with a correct USB-seeded UTC clock: serial
 reported real current conditions, Wi-Fi off, and a completed display-driver
 refresh. Casey then confirmed that the physical weather image looked correct
