@@ -137,7 +137,7 @@ export const lessons = [
       <ul>
         <li><a href="https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/tree/master/Eagle_SCH%26PCB" target="_blank" rel="noopener noreferrer">Elecrow schematics and PCB files (opens in a new tab)</a> — check BAT wiring and expansion connections before choosing parts. Ask the organizer or Elecrow if the battery requirements are unclear.</li>
         <li><a href="https://docs.micropython.org/en/latest/esp32/quickref.html#deep-sleep-mode" target="_blank" rel="noopener noreferrer">MicroPython ESP32 deep-sleep reference (opens in a new tab)</a> — explore a wake, fetch, draw, sleep project. Deep sleep restarts the program and loses RAM history; it stops the Bluetooth receiver while asleep. Measure whole-board current before estimating runtime.</li>
-        <li><a href="https://docs.micropython.org/en/latest/esp32/quickref.html#i2c-bus" target="_blank" rel="noopener noreferrer">MicroPython ESP32 I²C reference (opens in a new tab)</a> — explore a desk sensor display. Use the board schematic to confirm available GPIO_D pins, voltage and sensor wiring first.</li>
+        <li><a href="https://docs.micropython.org/en/latest/esp32/quickref.html#software-i2c-bus" target="_blank" rel="noopener noreferrer">MicroPython ESP32 I²C reference (opens in a new tab)</a> — explore a desk sensor display. Use the board schematic to confirm available GPIO_D pins, voltage and sensor wiring first.</li>
       </ul>
       <p><a href="#project">Continue in Your project</a> to save your own Python files in this browser.</p>
       <p><a href="#snake">Open the editor</a> → <strong>Make something new with Codex</strong> → describe your idea.</p>

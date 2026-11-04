@@ -606,7 +606,7 @@ firmware's third-party notices.
 - Board wiki and BAT specifications (3.7 V lithium, SH1.0 two-pin, charging circuit; verify exact revision and pack): https://www.elecrow.com/wiki/CrowPanel_ESP32_E-Paper_HMI_2.13-inch_Display.html
 - Expansion and BAT wiring: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/tree/master/Eagle_SCH%26PCB
 - Future power-saving projects: https://docs.micropython.org/en/latest/esp32/quickref.html#deep-sleep-mode
-- Future I²C sensor projects: https://docs.micropython.org/en/latest/esp32/quickref.html#i2c-bus
+- Future I²C sensor projects: https://docs.micropython.org/en/latest/esp32/quickref.html#software-i2c-bus
 - Board source/schematic: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250
 - JD79661 initialization/LUTs: https://github.com/Elecrow-RD/CrowPanel-ESP32-2.13-E-paper-HMI-Display-with-122-250/blob/11291e3e9a868be8943232b065f3e264dfaeeae3/example/arduino-v1.2/main/EPD_Init.cpp
 - JD79661 BUSY/auto-sequence commands: vendor `Datasheet/EK79029DS-JD79661_Datasheet.pdf`, sections 8.2.10 and 9.1.
